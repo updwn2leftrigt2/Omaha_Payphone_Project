@@ -1,25 +1,175 @@
-<!-- Digital Twin LCD -->
-<div id="lcd-screen" class="lcd-blue">
-  <div class="line">LIFT HANDSET /</div>
-  <div class="line">LEVANTE</div>
-  <div id="status-line" class="line">OFF HOOK</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omaha Payphone Project</title>
+    <style>
+        :root {
+            --lcd-blue: #00e5ff;
+            --lcd-glow: rgba(0, 229, 255, 0.4);
+            --bg-dark: #1a1a1a;
+        }
+
+        body {
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .payphone-container {
+            background: #222;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 4px solid #444;
+            width: 320px;
+        }
+
+        /* 20x4 LCD Display */
+        .lcd-display {
+            background: #001a1d;
+            border: 10px solid #111;
+            padding: 15px;
+            height: 100px;
+            margin-bottom: 25px;
+            color: var(--lcd-blue);
+            text-shadow: 0 0 8px var(--lcd-glow);
+            font-size: 1.2rem;
+            line-height: 1.2;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px #222;
+        }
+
+        button:active {
+            box-shadow: 0 0 #222;
+            transform: translateY(4px);
+        }
+
+        .handset-btn {
+            grid-column: span 3;
+            background: #a00;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .handset-btn.off-hook { background: #0a0; }
+    </style>
+</head>
+<body>
+
+<div class="payphone-container">
+    <div class="lcd-display" id="lcd">
+        <div>LIFT HANDSET /</div>
+        <div>LEVANTE</div>
+        <div id="status">ON HOOK</div>
+        <div id="input-display">&nbsp;</div>
+    </div>
+
+    <button id="handset-toggle" class="handset-btn" onclick="toggleHandset()">LIFT HANDSET / LEVANTE</button>
+
+    <div class="keypad">
+        <button onclick="press('1')">1</button>
+        <button onclick="press('2')">2</button>
+        <button onclick="press('3')">3</button>
+        <button onclick="press('4')">4</button>
+        <button onclick="press('5')">5</button>
+        <button onclick="press('6')">6</button>
+        <button onclick="press('7')">7</button>
+        <button onclick="press('8')">8</button>
+        <button onclick="press('9')">9</button>
+        <button onclick="press('*')">*</button>
+        <button onclick="press('0')">0</button>
+        <button onclick="press('#')">#</button>
+    </div>
 </div>
 
-<!-- Keypad Grid -->
-<div class="keypad">
-  <button onclick="press('1')">1</button>
-  <button onclick="press('2')">2</button>
-  <button onclick="press('3')">3</button>
-  <button onclick="press('4')">4</button>
-  <button onclick="press('5')">5</button>
-  <button onclick="press('6')">6</button>
-  <button onclick="press('7')">7</button>
-  <button onclick="press('8')">8</button>
-  <button onclick="press('9')">9</button>
-  <button onclick="press('*')">*</button>
-  <button onclick="press('0')">0</button>
-  <button onclick="press('#')">#</button>
-</div>
+<script>
+    const audio = new Audio();
+    audio.crossOrigin = "anonymous"; // FIXES CORS ERROR
+    
+    let isOffHook = false;
+    let inputString = "";
+    const baseUrl = "https://archive.org";
+    
+    // Directory Mapping
+    const tracks = ["0101.mp3", "0102.mp3", "0103.mp3"]; // Add your mp3 filenames here
+    let playlist = [...tracks];
 
-<!-- Security Bypass Button -->
-<button id="handset-btn" onclick="initAudio()">LIFT HANDSET</button>
+    function updateLCD(line3, line4 = "&nbsp;") {
+        document.getElementById('status').innerText = line3;
+        document.getElementById('input-display').innerHTML = line4;
+    }
+
+    function toggleHandset() {
+        isOffHook = !isOffHook;
+        const btn = document.getElementById('handset-toggle');
+        
+        if (isOffHook) {
+            btn.innerText = "HANG UP / COLGAR";
+            btn.classList.add('off-hook');
+            updateLCD("OFF HOOK", "DIAL NUMBER");
+            // Bypass security: Play dial tone or silent track
+            audio.src = baseUrl + "0100.mp3";
+            audio.play().catch(e => console.log("Audio Init Wait..."));
+        } else {
+            btn.innerText = "LIFT HANDSET / LEVANTE";
+            btn.classList.remove('off-hook');
+            updateLCD("ON HOOK", "&nbsp;");
+            audio.pause();
+            inputString = "";
+        }
+    }
+
+    function press(key) {
+        if (!isOffHook) return;
+        
+        inputString += key;
+        updateLCD("DIALING...", inputString);
+
+        if (inputString === "00#") {
+            playShuffle();
+            inputString = "";
+        } else if (inputString.length >= 3) {
+            // Optional: logic for specific 3-digit extensions
+            setTimeout(() => { inputString = ""; updateLCD("OFF HOOK", "DIAL NUMBER"); }, 2000);
+        }
+    }
+
+    function playShuffle() {
+        if (playlist.length === 0) playlist = [...tracks]; // Reset if empty
+        
+        const randomIndex = Math.floor(Math.random() * playlist.length);
+        const track = playlist.splice(randomIndex, 1)[0];
+        
+        updateLCD("PLAYING FROM", "DIRECTORY...");
+        audio.src = `${baseUrl}mp3/${track}`;
+        audio.play();
+    }
+</script>
+
+</body>
+</html>
