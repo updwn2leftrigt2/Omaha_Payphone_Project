@@ -107,26 +107,31 @@ function playTrack(num) {
     const track = directory[num];
     if (!track) return;
 
-    // Reset current audio
+    // 1. Reset and clear previous state
     audio.pause();
-    audio.src = "";
+    audio.removeAttribute('src'); 
+    audio.load();
 
-    // Play "Click" (Track 0099)
+    // 2. Play "Click" (Track 0099)
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(e => console.log("Click skipped"));
 
+    // 3. Prepare the next track
     setTimeout(() => {
-        // Formats to 4 digits: e.g. 2 -> "0002.mp3"
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
-        audio.load();
-        
-        audio.play().then(() => {
-            updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
-        }).catch(e => {
-            console.error("Error playing track:", e);
-            updateLCD("ERROR", "NOT SUPPORTED", "CODE: " + e.name, "");
-        });
+        audio.load(); // Force the browser to re-examine the source
+
+        // 4. WAIT for the server to confirm the file is valid before playing
+        audio.oncanplaythrough = () => {
+            audio.play().then(() => {
+                updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
+                audio.oncanplaythrough = null; // Clean up listener
+            }).catch(e => {
+                console.error("Playback failed:", e);
+                updateLCD("ERROR", "RETRY DIALING", "", "");
+            });
+        };
     }, 400);
 }
 
