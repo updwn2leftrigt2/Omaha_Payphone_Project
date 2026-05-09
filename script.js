@@ -8,7 +8,7 @@ let isDirectoryOpen = false;
 let inputString = "";
 let currentTrackNum = 1;
 let directoryIndex = 2; // Starts at first artist (Alina Nguyen)
-const baseUrl = "https://archive.org";
+const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 // The full 1-49 directory stays the same as previous...
 const directory = { /* ... keep your full directory object here ... */ };
