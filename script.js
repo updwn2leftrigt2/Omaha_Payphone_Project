@@ -13,7 +13,7 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
-// --- FULL DIRECTORY ---
+// --- DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -64,27 +64,25 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
-function writeLine(id, text) {
-    const el = document.getElementById(id);
-    
-    // Line 4 is the stationary navigation line - NO DUPLICATION
-    if (id === 'line4') {
-        el.innerHTML = text; // Just show the text once
-        return;
-    }
-
-    // Lines 2 and 3 scroll and duplicate only if text is longer than 18 characters
-    if (text.length > 18) {
-        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
-    } else {
-        el.innerHTML = text; // Show normally if short enough
-    }
+// HELPER: Forces synced scrolling if either line is too long
+function updateLCDWithSync(l2, l3, l4) {
+    const forceScroll = l2.length > 18 || l3.length > 18;
+    writeLine('line2', l2, forceScroll);
+    writeLine('line3', l3, forceScroll);
+    writeLine('line4', l4);
 }
 
-function updateLCD(l2, l3, l4) {
-    writeLine('line2', l2);
-    writeLine('line3', l3);
-    writeLine('line4', l4 || " "); 
+function writeLine(id, text, forceScroll = false) {
+    const el = document.getElementById(id);
+    if (id === 'line4') {
+        el.innerText = text; // Always static
+        return;
+    }
+    if (forceScroll) {
+        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+    } else {
+        el.innerText = text;
+    }
 }
 
 function cycleVolume() {
@@ -99,11 +97,11 @@ function refreshDisplay() {
     if (isDirectoryOpen) {
         showDirectoryEntry();
     } else if (currentTrackNum === 1) {
-        updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
+        updateLCDWithSync("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
     } else {
         const track = directory[currentTrackNum];
         const displayNum = currentTrackNum.toString().padStart(2, '0');
-        updateLCD(`${displayNum} ${track.artist}`, track.title, "4< PREV | 5:RND | 6> NEXT");
+        updateLCDWithSync(`${displayNum} ${track.artist}`, track.title, "4< PREV | 5:RND | 6> NEXT");
     }
 }
 
@@ -115,7 +113,7 @@ function toggleHandset() {
         playTrack(1); 
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
-        updateLCD("LEVANTE", "ON HOOK", " ");
+        updateLCDWithSync("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = "";
         isDirectoryOpen = false; inputString = "";
     }
@@ -151,7 +149,7 @@ function press(key) {
     else if (key === '#') {
         const dialed = parseInt(inputString.replace('#',''));
         if (directory[dialed]) playTrack(dialed);
-        else updateLCD("INVALID", "NUMBER", "TRY AGAIN");
+        else updateLCDWithSync("INVALID", "NUMBER", "TRY AGAIN");
         inputString = "";
     } else {
         document.getElementById('line2').innerText = "DIALING...";
@@ -162,7 +160,7 @@ function press(key) {
 function showDirectoryEntry() {
     const entry = directory[directoryIndex];
     const displayNum = directoryIndex.toString().padStart(2, '0');
-    updateLCD(`${displayNum} ${entry.artist}`, entry.title, "2^ UP / 8v DOWN / # PLAY");
+    updateLCDWithSync(`${displayNum} ${entry.artist}`, entry.title, "2^ UP / 8v DOWN / # PLAY");
 }
 
 function playRandom() {
@@ -171,12 +169,10 @@ function playRandom() {
 }
 
 function playTrack(num) {
-    if (num === 30 || num === 43) { updateLCD("TRACK COMING SOON", "DIAL 00# FOR", "DIRECTORY"); return; }
+    if (num === 30 || num === 43) { updateLCDWithSync("TRACK COMING SOON", "DIAL 00# FOR", "DIRECTORY"); return; }
     const track = directory[num];
     if (!track) return;
     currentTrackNum = num; audio.pause();
-    
-    // Relay click sound using full URL
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     
