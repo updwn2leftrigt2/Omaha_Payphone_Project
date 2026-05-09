@@ -1,10 +1,8 @@
-<!-- HTML remains the same as the previous Coral/Silver version -->
-<!-- Ensure line2 says "LIFT HANDSET / LEVANTE" to start -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Omaha Payphone Project</title>
     <style>
         :root { 
@@ -13,19 +11,40 @@
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
-        body { background-color: #333; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Courier New', Courier, monospace; }
+
+        /* MOBILE FIX: Use dvh (dynamic viewport height) to account for browser bars */
+        body { 
+            background-color: #333; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            height: 100dvh; 
+            margin: 0; 
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; /* Prevents accidental page scrolling */
+        }
         
         .payphone-container { 
-            background: var(--payphone-coral); padding: 30px; border-radius: 15px; border: 5px solid #d45d30; width: 340px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            background: var(--payphone-coral); 
+            padding: 15px; /* Slightly reduced for mobile */
+            border-radius: 15px; 
+            border: 5px solid #d45d30; 
+            width: 90vw; /* Responsive width */
+            max-width: 340px; 
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transform: scale(0.95); /* Subtle scale down to ensure fit */
         }
         
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 135px; margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 12px var(--lcd-glow); font-size: 1.15rem; font-weight: bold; text-align: center; overflow: hidden;
+            background: #001a1d; border: 6px solid #222; padding: 8px; height: 110px; 
+            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1.05rem; font-weight: bold; text-align: left; overflow: hidden;
         }
 
-        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.5em; position: relative; display: flex; justify-content: center; align-items: center; }
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; position: relative; }
         
-        /* SYNCED SCROLL (24s) */
         .scroll-wrap { 
             display: inline-block; padding-left: 100%; animation: auto-scroll 24s linear infinite; 
         }
@@ -35,14 +54,35 @@
             100% { transform: translateX(-200%); }
         }
 
-        .nav-row { font-size: 0.95rem; border-top: 1px solid rgba(0,229,255,0.2); padding-top: 4px; text-align: center; }
+        .vol-btn { background: #0047ab; color: white; border: 2px solid #000; padding: 8px; font-size: 0.75rem; margin-bottom: 12px; cursor: pointer; width: 110px; border-radius: 5px; font-weight: bold; }
+        
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        
+        button.key { 
+            background: var(--button-silver); 
+            color: #333; border: 2px solid #888; 
+            padding: 15px; 
+            font-size: 1.5rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            box-shadow: 0 3px #666; 
+            font-weight: bold;
+            touch-action: manipulation; /* Fixes 300ms tap delay and zooming */
+        }
+        button.key:active { transform: translateY(2px); box-shadow: 0 0 #666; }
 
-        .vol-btn { background: #0047ab; color: white; border: 2px solid #000; padding: 10px; font-size: 0.8rem; margin-bottom: 15px; cursor: pointer; width: 120px; border-radius: 5px; font-weight: bold; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        button.key { background: var(--button-silver); color: #333; border: 2px solid #888; padding: 20px; font-size: 1.7rem; border-radius: 5px; cursor: pointer; box-shadow: 0 4px #666; font-weight: bold; }
-        button.key:active { transform: translateY(4px); box-shadow: 0 0 #666; }
-        .handset-btn { width: 100%; background: #a00; color: white; padding: 18px; margin-bottom: 15px; font-size: 1.2rem; cursor: pointer; border-radius: 5px; box-shadow: 0 4px #600; font-weight: bold; }
+        .handset-btn { 
+            width: 100%; background: #a00; color: white; padding: 12px; 
+            margin-bottom: 12px; font-size: 1.1rem; cursor: pointer; 
+            border-radius: 5px; box-shadow: 0 4px #600; font-weight: bold;
+            touch-action: manipulation;
+        }
         .handset-btn.off-hook { background: #0a0; box-shadow: 0 4px #060; }
+
+        /* Media Query for very small screens */
+        @media (max-height: 600px) {
+            .payphone-container { transform: scale(0.85); margin-top: -20px; }
+        }
     </style>
 </head>
 <body>
@@ -51,7 +91,7 @@
         <div id="line1" class="line-container">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
-        <div id="line4" class="nav-row">&nbsp;</div>
+        <div id="line4" class="line-container">&nbsp;</div>
     </div>
     <button id="handset-toggle" class="handset-btn" onclick="toggleHandset()">LIFT HANDSET / LEVANTE</button>
     <button class="vol-btn" onclick="cycleVolume()">VOLUME <br> PRESS</button>
