@@ -8,37 +8,33 @@ let isDirectoryOpen = false;
 let isLanguageSelected = false;
 let currentLang = 'en'; 
 let inputString = "";
-let currentTrackNum = 1;
+let currentTrackNum = 1; 
 let directoryIndex = 2; 
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 // --- FULL DIRECT SERVER URL ---
-const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
+const baseUrl = "https://archive.org";
 
-// --- TRANSLATIONS DICTIONARY ---
 const ui = {
     en: {
         dialNum: "DIAL NUMBER",
         directory: "00# DIRECTORY",
-        playing: "NOW PLAYING",
-        by: "BY:",
         prevNext: "4< PREV | 5:RND | 6> NEXT",
         dirNav: "2^ UP / 8v DOWN / # PLAY",
-        invalid: "INVALID NUMBER"
+        invalid: "INVALID NUMBER",
+        mainMenu: "MAIN MENU"
     },
     es: {
         dialNum: "MARQUE NUMERO",
         directory: "00# DIRECTORIO",
-        playing: "REPRODUCIENDO",
-        by: "POR:",
         prevNext: "4< ANT | 5:AZAR | 6> SIG",
         dirNav: "2^ SUBIR/8v BAJAR/# TOCAR",
-        invalid: "NUMERO INVALIDO"
+        invalid: "NUMERO INVALIDO",
+        mainMenu: "MENU PRINCIPAL"
     }
 };
 
-// --- ARTIST DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -93,7 +89,6 @@ function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') { el.innerText = "OMAHA PAYPHONE PROJECT"; return; }
     if (id === 'line4') { el.innerText = text; return; }
-    
     if (forceScroll || text.length > 18) {
         el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
     } else {
@@ -123,14 +118,6 @@ function refreshDisplay() {
     }
 }
 
-function cycleVolume() {
-    volIndex = (volIndex + 1) % volLevels.length;
-    audio.volume = volLevels[volIndex];
-    clickAudio.volume = volLevels[volIndex];
-    document.getElementById('line2').innerHTML = "VOLUME: " + "I".repeat(volIndex + 1);
-    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
-}
-
 function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
@@ -149,35 +136,53 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return;
 
+    // Phase 1: Language Prompt Check
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
 
-    inputString += key;
-    if (inputString.includes("00#")) {
+    // ASTERISK (*) MAIN MENU OVERRIDE
+    if (key === '*') {
+        isDirectoryOpen = false;
+        inputString = "";
+        playTrack(1); // Return to Dial Tone
+        return;
+    }
+
+    // Directory Shortcut
+    if ((inputString + key).includes("00#")) {
         isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
         return;
     }
 
+    // Phase 2: Directory Controls
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
-        else if (key === '*') { isDirectoryOpen = false; refreshDisplay(); }
         return;
     }
 
-    if (key === '5') playRandom();
-    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
-    else if (key === '#') {
-        const dialed = parseInt(inputString.replace('#',''));
+    // Phase 3: Playback Controls (Active only if no digits are being dialed)
+    if (currentTrackNum > 1 && inputString === "") {
+        if (key === '5') { playRandom(); return; }
+        if (key === '4') { playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); return; }
+        if (key === '6') { playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); return; }
+    }
+
+    // Phase 4: Build Dialing String
+    if (key === '#') {
+        const dialed = parseInt(inputString);
         if (directory[dialed]) playTrack(dialed);
-        else updateLCDWithSync(ui[currentLang].invalid, " ", " ");
+        else {
+            updateLCDWithSync(ui[currentLang].invalid, " ", " ");
+            setTimeout(refreshDisplay, 2000);
+        }
         inputString = "";
     } else {
+        inputString += key;
         document.getElementById('line2').innerText = "DIALING...";
         document.getElementById('line3').innerText = inputString;
     }
@@ -196,13 +201,10 @@ function playRandom() {
 
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
-    const track = directory[num];
-    if (!track && num !== 100) return;
-    
     currentTrackNum = num;
     audio.pause();
     
-    clickAudio.src = baseUrl + "0099.mp3";
+    clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     
     refreshDisplay();
@@ -213,4 +215,12 @@ function playTrack(num) {
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
+}
+
+function cycleVolume() {
+    volIndex = (volIndex + 1) % volLevels.length;
+    audio.volume = volLevels[volIndex];
+    clickAudio.volume = volLevels[volIndex];
+    document.getElementById('line2').innerHTML = "VOLUME: " + "I".repeat(volIndex + 1);
+    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
