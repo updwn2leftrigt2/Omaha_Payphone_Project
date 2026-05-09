@@ -11,13 +11,15 @@ let inputString = "";
 let currentTrackNum = 1; 
 let directoryIndex = 2; 
 let volIndex = 1; 
+let cmdTimer = null; // Timer to handle 4,5,6 conflict
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { dialNum: "DIAL NUMBER", directory: "00# DIRECTORY", prevNext: "4< PREV | 5:RND | 6> NEXT", dirNav: "2^ UP / 8v DOWN / # PLAY", invalid: "INVALID NUMBER" },
-    es: { dialNum: "MARQUE NUMERO", directory: "00# DIRECTORIO", prevNext: "4< ANT | 5:AZAR | 6> SIG", dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", invalid: "NUMERO INVALIDO" }
+    en: { dialNum: "DIAL NUMBER", directory: "00# DIRECTORY", prevNext: "4< PREV | 5:RND | 6> NEXT", dirNav: "2^ UP / 8v DOWN / # PLAY", invalid: "INVALID" },
+    es: { dialNum: "MARQUE NUMERO", directory: "00# DIRECTORIO", prevNext: "4< ANT | 5:AZAR | 6> SIG", dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", invalid: "INVALIDO" }
 };
 
 const directory = {
@@ -114,58 +116,67 @@ function toggleHandset() {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
         updateLCDWithSync("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = "";
-        isDirectoryOpen = false; inputString = "";
+        isDirectoryOpen = false; isLanguageSelected = false; inputString = "";
+        if (cmdTimer) clearTimeout(cmdTimer);
     }
 }
 
 function press(key) {
     if (!isOffHook) return;
 
+    // --- LANGUAGE PHASE ---
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
 
-    if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
-
-    inputString += key;
-
-    if (inputString.includes("00#")) {
-        isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
-        return;
+    // --- ASTERISK RESET ---
+    if (key === '*') {
+        if (cmdTimer) clearTimeout(cmdTimer);
+        isDirectoryOpen = false; inputString = "";
+        playTrack(1); return;
     }
 
+    // Cancel any pending command if a new key is pressed
+    if (cmdTimer) {
+        clearTimeout(cmdTimer);
+        cmdTimer = null;
+    }
+
+    // --- DIRECTORY MODE ---
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); inputString = ""; }
-        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); inputString = ""; }
-        else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; inputString = ""; }
+        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
+        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
+        else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         return;
     }
 
-    // THE WORKAROUND: If # is pressed, process the string. 
-    // If a single command (4, 5, 6) is pressed ALONE, wait 500ms to see if more digits follow.
+    // --- DIALING LOGIC ---
     if (key === '#') {
-        const dialed = parseInt(inputString);
-        if (directory[dialed]) playTrack(dialed);
-        else {
-            updateLCDWithSync(ui[currentLang].invalid, " ", " ");
-            setTimeout(refreshDisplay, 1500);
+        if (inputString === "00") {
+            isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry();
+        } else {
+            const dialed = parseInt(inputString);
+            if (directory[dialed]) playTrack(dialed);
+            else { updateLCDWithSync(ui[currentLang].invalid, inputString, " "); setTimeout(refreshDisplay, 1500); }
         }
         inputString = "";
     } else {
+        inputString += key;
         updateLCDWithSync("DIALING...", inputString, " ");
-        
-        // Timer logic for single-digit commands (4, 5, 6)
+
+        // SMART COMMAND CHECK: Only triggers if key 4,5, or 6 is pressed ALONE while music is playing
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
-            setTimeout(() => {
-                if (inputString === key) { // No other digits were typed
+            cmdTimer = setTimeout(() => {
+                if (inputString === key) { // No other keys were pressed in 700ms
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
                     inputString = "";
                 }
-            }, 600); // 0.6 second window to type a second digit
+                cmdTimer = null;
+            }, 700);
         }
     }
 }
