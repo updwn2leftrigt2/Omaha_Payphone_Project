@@ -7,6 +7,8 @@ let isOffHook = false;
 let inputString = "";
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
+
+// DIRECT SERVER URL FROM YOUR DIRECTORY LIST
 const baseUrl = "https://archive.org";
 
 const directory = {
@@ -78,52 +80,65 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
     if (isOffHook) {
-        btn.innerText = "HANG UP / COLGAR"; btn.classList.add('off-hook');
-        playTrack(1); 
+        btn.innerText = "HANG UP / COLGAR";
+        btn.classList.add('off-hook');
+        playTrack(1); // Dial Tone
     } else {
-        btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
+        btn.innerText = "LIFT HANDSET / LEVANTE";
+        btn.classList.remove('off-hook');
         updateLCD("LIFT HANDSET /", "LEVANTE", "ON HOOK", "&nbsp;");
-        audio.pause(); audio.removeAttribute('src'); audio.load(); inputString = "";
+        audio.pause();
+        audio.removeAttribute('src'); 
+        audio.load();
+        inputString = "";
     }
 }
 
 function playTrack(num) {
     if (num === 30 || num === 43) {
-        updateLCD("STAY TUNED", "TRACK COMING SOON", "---", ""); return;
+        updateLCD("STAY TUNED", "TRACK COMING SOON", "---", ""); 
+        return;
     }
+
     const track = directory[num];
     if (!track) return;
 
-    // Reset Audio to clear "NotSupportedError"
+    // Reset Audio object state to clear errors
     audio.pause();
     audio.removeAttribute('src');
     audio.load();
 
+    // Play "Click" (Track 0099)
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(e => console.log("Click skipped"));
 
+    // SMALL BUFFER: Let the browser handshake with the server
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
         audio.load();
         
-        // Only play once the browser confirms it can play the file
-        audio.oncanplay = () => {
-            audio.play().then(() => {
-                updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
-                audio.oncanplay = null; 
-            }).catch(e => console.error("Play failed:", e));
-        };
-    }, 400);
+        // Final attempt to play after handshake
+        audio.play().then(() => {
+            updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
+        }).catch(e => {
+            console.error("Playback failed:", e);
+            updateLCD("ERROR", "RE-CLICK LIFT", "---", "");
+        });
+    }, 500);
 }
 
 function press(key) {
     if (!isOffHook) return;
     inputString += key;
     updateLCD("DIALING...", inputString, "---", "");
+
     if (inputString === "00#") {
-        let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (rand === 30 || rand === 43);
-        playTrack(rand); inputString = "";
+        let rand; 
+        do { rand = Math.floor(Math.random() * 48) + 2; } 
+        while (rand === 30 || rand === 43);
+        playTrack(rand); 
+        inputString = "";
     } else if (inputString.length >= 4) {
         setTimeout(() => { inputString = ""; updateLCD("OFF HOOK", "DIAL NUMBER", "---", ""); }, 1500);
     }
