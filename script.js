@@ -11,7 +11,7 @@ let inputString = "";
 let currentTrackNum = 1; 
 let directoryIndex = 2; 
 let volIndex = 1; 
-let cmdTimer = null; // Timer to handle 4,5,6 conflict
+let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 // --- FULL DIRECT SERVER URL ---
@@ -116,7 +116,7 @@ function toggleHandset() {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
         updateLCDWithSync("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = "";
-        isDirectoryOpen = false; isLanguageSelected = false; inputString = "";
+        isDirectoryOpen = false; inputString = "";
         if (cmdTimer) clearTimeout(cmdTimer);
     }
 }
@@ -124,27 +124,24 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return;
 
-    // --- LANGUAGE PHASE ---
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
 
-    // --- ASTERISK RESET ---
     if (key === '*') {
         if (cmdTimer) clearTimeout(cmdTimer);
         isDirectoryOpen = false; inputString = "";
         playTrack(1); return;
     }
 
-    // Cancel any pending command if a new key is pressed
+    // Cancel any skip command because we are now dialing a specific number
     if (cmdTimer) {
         clearTimeout(cmdTimer);
         cmdTimer = null;
     }
 
-    // --- DIRECTORY MODE ---
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
@@ -152,7 +149,6 @@ function press(key) {
         return;
     }
 
-    // --- DIALING LOGIC ---
     if (key === '#') {
         if (inputString === "00") {
             isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry();
@@ -166,17 +162,17 @@ function press(key) {
         inputString += key;
         updateLCDWithSync("DIALING...", inputString, " ");
 
-        // SMART COMMAND CHECK: Only triggers if key 4,5, or 6 is pressed ALONE while music is playing
+        // If you press 4, 5, or 6 alone, we wait 1 second to see if you add a second number (like the '6' in '46')
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
             cmdTimer = setTimeout(() => {
-                if (inputString === key) { // No other keys were pressed in 700ms
+                if (inputString === key) { 
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
-            }, 700);
+            }, 1000); // 1 second window to type the next digit
         }
     }
 }
@@ -196,11 +192,14 @@ function playTrack(num) {
     if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
     currentTrackNum = num;
     audio.pause();
+    // Use Full Direct URL for click
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
+    
     refreshDisplay();
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file; // Full URL appended here
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
