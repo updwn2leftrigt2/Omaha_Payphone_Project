@@ -11,9 +11,9 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
+// --- FULL DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -64,11 +64,16 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
-function writeLine(id, text, isSlow = false) {
+function writeLine(id, text) {
     const el = document.getElementById(id);
-    const scrollClass = isSlow ? 'slow-scroll' : 'scroll-wrap';
+    // Line 4 is designated as the stationary navigation line
+    if (id === 'line4') {
+        el.innerText = text;
+        return;
+    }
+    // All other lines scroll if text > 18 chars
     if (text.length > 18) {
-        el.innerHTML = `<div class="${scrollClass}">${text} &nbsp;&nbsp; ${text}</div>`;
+        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
     } else {
         el.innerText = text;
     }
@@ -77,7 +82,7 @@ function writeLine(id, text, isSlow = false) {
 function updateLCD(l2, l3, l4) {
     writeLine('line2', l2);
     writeLine('line3', l3);
-    writeLine('line4', l4 || " ", true); 
+    writeLine('line4', l4 || " "); 
 }
 
 function cycleVolume() {
@@ -96,7 +101,6 @@ function refreshDisplay() {
     } else {
         const track = directory[currentTrackNum];
         const displayNum = currentTrackNum.toString().padStart(2, '0');
-        // Displays number before artist name while playing
         updateLCD(`${displayNum} ${track.artist}`, track.title, "4< PREV | 5:RND | 6> NEXT");
     }
 }
@@ -170,7 +174,7 @@ function playTrack(num) {
     if (!track) return;
     currentTrackNum = num; audio.pause();
     
-    // Direct link for the relay click sound
+    // Relay click sound using full URL
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     
