@@ -73,10 +73,12 @@ const directory = {
 
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
-    if (id === 'line1') { el.innerText = "OMAHA PAYPHONE PROJECT"; return; }
-    // Remove duplication for static centering unless forced
+    if (id === 'line1') return; // Pulse handled in CSS
+    if (id === 'line4') { el.innerText = text; return; }
+
     if (forceScroll || text.length > 18) {
-        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+        // CLEAN LOOP: Start right, end left, repeat. No doubling.
+        el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
         el.innerText = text;
     }
