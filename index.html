@@ -107,69 +107,7 @@
     </div>
 </div>
 
-<script>
-    const audio = new Audio();
-    audio.crossOrigin = "anonymous"; // FIXES CORS ERROR
-    
-    let isOffHook = false;
-    let inputString = "";
-    const baseUrl = "https://archive.org";
-    
-    // Directory Mapping
-    const tracks = ["0101.mp3", "0102.mp3", "0103.mp3"]; // Add your mp3 filenames here
-    let playlist = [...tracks];
-
-    function updateLCD(line3, line4 = "&nbsp;") {
-        document.getElementById('status').innerText = line3;
-        document.getElementById('input-display').innerHTML = line4;
-    }
-
-    function toggleHandset() {
-        isOffHook = !isOffHook;
-        const btn = document.getElementById('handset-toggle');
-        
-        if (isOffHook) {
-            btn.innerText = "HANG UP / COLGAR";
-            btn.classList.add('off-hook');
-            updateLCD("OFF HOOK", "DIAL NUMBER");
-            // Bypass security: Play dial tone or silent track
-            audio.src = baseUrl + "0100.mp3";
-            audio.play().catch(e => console.log("Audio Init Wait..."));
-        } else {
-            btn.innerText = "LIFT HANDSET / LEVANTE";
-            btn.classList.remove('off-hook');
-            updateLCD("ON HOOK", "&nbsp;");
-            audio.pause();
-            inputString = "";
-        }
-    }
-
-    function press(key) {
-        if (!isOffHook) return;
-        
-        inputString += key;
-        updateLCD("DIALING...", inputString);
-
-        if (inputString === "00#") {
-            playShuffle();
-            inputString = "";
-        } else if (inputString.length >= 3) {
-            // Optional: logic for specific 3-digit extensions
-            setTimeout(() => { inputString = ""; updateLCD("OFF HOOK", "DIAL NUMBER"); }, 2000);
-        }
-    }
-
-    function playShuffle() {
-        if (playlist.length === 0) playlist = [...tracks]; // Reset if empty
-        
-        const randomIndex = Math.floor(Math.random() * playlist.length);
-        const track = playlist.splice(randomIndex, 1)[0];
-        
-        updateLCD("PLAYING FROM", "DIRECTORY...");
-        audio.src = `${baseUrl}mp3/${track}`;
-        audio.play();
-    }
-</script>
-
+<!-- Remove all the old JS code and just use this one line -->
+<script src="script.js"></script>
 </body>
 </html>
