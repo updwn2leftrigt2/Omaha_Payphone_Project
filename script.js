@@ -18,8 +18,22 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { dialNum: "DIAL NUMBER", directory: "00# DIRECTORY", prevNext: "4< PREV | 5:RND | 6> NEXT", dirNav: "2^ UP / 8v DOWN / # PLAY", invalid: "INVALID" },
-    es: { dialNum: "MARQUE NUMERO", directory: "00# DIRECTORIO", prevNext: "4< ANT | 5:AZAR | 6> SIG", dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", invalid: "INVALIDO" }
+    en: { 
+        dialNum: "DIAL NUMBER", 
+        rndPrompt: "5: RANDOM TRACK",
+        directory: "00# DIRECTORY", 
+        prevNext: "4< PREV | 5:RND | 6> NEXT", 
+        dirNav: "2^ UP / 8v DOWN / # PLAY", 
+        invalid: "INVALID" 
+    },
+    es: { 
+        dialNum: "MARQUE NUMERO", 
+        rndPrompt: "5: TOQUE AL AZAR",
+        directory: "00# DIRECTORIO", 
+        prevNext: "4< ANT | 5:AZAR | 6> SIG", 
+        dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", 
+        invalid: "INVALIDO" 
+    }
 };
 
 const directory = {
@@ -97,7 +111,8 @@ function refreshDisplay() {
     } else if (isDirectoryOpen) {
         showDirectoryEntry();
     } else if (currentTrackNum === 1) {
-        updateLCDWithSync(lang.dialNum, lang.directory, " ");
+        // NEW MAIN MENU SCREEN PROMPT
+        updateLCDWithSync(lang.rndPrompt, lang.directory, lang.dialNum);
     } else {
         const track = directory[currentTrackNum];
         const displayNum = currentTrackNum.toString().padStart(2, '0');
@@ -136,11 +151,7 @@ function press(key) {
         playTrack(1); return;
     }
 
-    // Cancel any skip command because we are now dialing a specific number
-    if (cmdTimer) {
-        clearTimeout(cmdTimer);
-        cmdTimer = null;
-    }
+    if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
@@ -162,17 +173,16 @@ function press(key) {
         inputString += key;
         updateLCDWithSync("DIALING...", inputString, " ");
 
-        // If you press 4, 5, or 6 alone, we wait 1 second to see if you add a second number (like the '6' in '46')
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) { 
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
-            }, 1000); // 1 second window to type the next digit
+            }, 1000);
         }
     }
 }
@@ -192,14 +202,13 @@ function playTrack(num) {
     if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
     currentTrackNum = num;
     audio.pause();
-    // Use Full Direct URL for click
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     
     refreshDisplay();
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file; // Full URL appended here
+        audio.src = baseUrl + file;
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
