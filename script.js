@@ -14,7 +14,7 @@ let volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 // --- FULL DIRECT SERVER URL ---
-const baseUrl = "https://archive.org";
+const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
     en: {
