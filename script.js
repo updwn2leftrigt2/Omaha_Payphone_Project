@@ -5,15 +5,40 @@ clickAudio.crossOrigin = "anonymous";
 
 let isOffHook = false;
 let isDirectoryOpen = false;
+let isLanguageSelected = false;
+let currentLang = 'en'; 
 let inputString = "";
 let currentTrackNum = 1;
 let directoryIndex = 2; 
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
-// --- DIRECTORY ---
+// --- TRANSLATIONS DICTIONARY ---
+const ui = {
+    en: {
+        dialNum: "DIAL NUMBER",
+        directory: "00# DIRECTORY",
+        playing: "NOW PLAYING",
+        by: "BY:",
+        prevNext: "4< PREV | 5:RND | 6> NEXT",
+        dirNav: "2^ UP / 8v DOWN / # PLAY",
+        invalid: "INVALID NUMBER"
+    },
+    es: {
+        dialNum: "MARQUE NUMERO",
+        directory: "00# DIRECTORIO",
+        playing: "REPRODUCIENDO",
+        by: "POR:",
+        prevNext: "4< ANT | 5:AZAR | 6> SIG",
+        dirNav: "2^ SUBIR/8v BAJAR/# TOCAR",
+        invalid: "NUMERO INVALIDO"
+    }
+};
+
+// --- ARTIST DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -64,24 +89,37 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
-// HELPER: Forces synced scrolling if either line is too long
+function writeLine(id, text, forceScroll = false) {
+    const el = document.getElementById(id);
+    if (id === 'line1') { el.innerText = "OMAHA PAYPHONE PROJECT"; return; }
+    if (id === 'line4') { el.innerText = text; return; }
+    
+    if (forceScroll || text.length > 18) {
+        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+    } else {
+        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
+    }
+}
+
 function updateLCDWithSync(l2, l3, l4) {
-    const forceScroll = l2.length > 18 || l3.length > 18;
-    writeLine('line2', l2, forceScroll);
-    writeLine('line3', l3, forceScroll);
+    const force = l2.length > 18 || l3.length > 18;
+    writeLine('line2', l2, force);
+    writeLine('line3', l3, force);
     writeLine('line4', l4);
 }
 
-function writeLine(id, text, forceScroll = false) {
-    const el = document.getElementById(id);
-    if (id === 'line4') {
-        el.innerText = text; // Always static
-        return;
-    }
-    if (forceScroll) {
-        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+function refreshDisplay() {
+    const lang = ui[currentLang];
+    if (!isLanguageSelected) {
+        updateLCDWithSync("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
+    } else if (isDirectoryOpen) {
+        showDirectoryEntry();
+    } else if (currentTrackNum === 1) {
+        updateLCDWithSync(lang.dialNum, lang.directory, " ");
     } else {
-        el.innerText = text;
+        const track = directory[currentTrackNum];
+        const displayNum = currentTrackNum.toString().padStart(2, '0');
+        updateLCDWithSync(`${displayNum} ${track.artist}`, track.title, lang.prevNext);
     }
 }
 
@@ -89,20 +127,8 @@ function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
     audio.volume = volLevels[volIndex];
     clickAudio.volume = volLevels[volIndex];
-    document.getElementById('line2').innerText = "VOLUME: " + "I".repeat(volIndex + 1);
+    document.getElementById('line2').innerHTML = "VOLUME: " + "I".repeat(volIndex + 1);
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
-}
-
-function refreshDisplay() {
-    if (isDirectoryOpen) {
-        showDirectoryEntry();
-    } else if (currentTrackNum === 1) {
-        updateLCDWithSync("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
-    } else {
-        const track = directory[currentTrackNum];
-        const displayNum = currentTrackNum.toString().padStart(2, '0');
-        updateLCDWithSync(`${displayNum} ${track.artist}`, track.title, "4< PREV | 5:RND | 6> NEXT");
-    }
 }
 
 function toggleHandset() {
@@ -110,7 +136,8 @@ function toggleHandset() {
     const btn = document.getElementById('handset-toggle');
     if (isOffHook) {
         btn.innerText = "HANG UP / COLGAR"; btn.classList.add('off-hook');
-        playTrack(1); 
+        isLanguageSelected = false;
+        playTrack(100); 
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
         updateLCDWithSync("LEVANTE", "ON HOOK", " ");
@@ -122,6 +149,12 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return;
 
+    if (!isLanguageSelected) {
+        if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
+        else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
+        return;
+    }
+
     inputString += key;
     if (inputString.includes("00#")) {
         isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
@@ -129,27 +162,20 @@ function press(key) {
     }
 
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = directoryIndex > 2 ? directoryIndex - 1 : 49; showDirectoryEntry(); }
-        else if (key === '8') { directoryIndex = directoryIndex < 49 ? directoryIndex + 1 : 2; showDirectoryEntry(); }
+        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
+        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         else if (key === '*') { isDirectoryOpen = false; refreshDisplay(); }
-        inputString = "";
         return;
     }
 
-    if (key === '5') { playRandom(); inputString = ""; }
-    else if (key === '4') { 
-        let prev = currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49; 
-        playTrack(prev); inputString = ""; 
-    }
-    else if (key === '6') { 
-        let next = currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2; 
-        playTrack(next); inputString = ""; 
-    }
+    if (key === '5') playRandom();
+    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
     else if (key === '#') {
         const dialed = parseInt(inputString.replace('#',''));
         if (directory[dialed]) playTrack(dialed);
-        else updateLCDWithSync("INVALID", "NUMBER", "TRY AGAIN");
+        else updateLCDWithSync(ui[currentLang].invalid, " ", " ");
         inputString = "";
     } else {
         document.getElementById('line2').innerText = "DIALING...";
@@ -160,7 +186,7 @@ function press(key) {
 function showDirectoryEntry() {
     const entry = directory[directoryIndex];
     const displayNum = directoryIndex.toString().padStart(2, '0');
-    updateLCDWithSync(`${displayNum} ${entry.artist}`, entry.title, "2^ UP / 8v DOWN / # PLAY");
+    updateLCDWithSync(`${displayNum} ${entry.artist}`, entry.title, ui[currentLang].dirNav);
 }
 
 function playRandom() {
@@ -169,11 +195,14 @@ function playRandom() {
 }
 
 function playTrack(num) {
-    if (num === 30 || num === 43) { updateLCDWithSync("TRACK COMING SOON", "DIAL 00# FOR", "DIRECTORY"); return; }
+    if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
     const track = directory[num];
-    if (!track) return;
-    currentTrackNum = num; audio.pause();
-    clickAudio.src = "https://archive.org0099.mp3";
+    if (!track && num !== 100) return;
+    
+    currentTrackNum = num;
+    audio.pause();
+    
+    clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(() => {});
     
     refreshDisplay();
@@ -182,6 +211,6 @@ function playTrack(num) {
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
         audio.load();
-        audio.play().then(() => { if (num !== 1) refreshDisplay(); }).catch(e => console.error("Playback failed", e));
+        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
 }
