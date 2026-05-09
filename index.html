@@ -8,28 +8,16 @@
         :root { --lcd-blue: #00e5ff; --lcd-glow: rgba(0, 229, 255, 0.6); }
         body { background-color: #333; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Courier New', Courier, monospace; }
         .payphone-container { background: #222; padding: 30px; border-radius: 15px; border: 4px solid #444; width: 340px; text-align: center; }
+        .lcd-display { background: #001a1d; border: 10px solid #111; padding: 10px; height: 135px; margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 12px var(--lcd-glow); font-size: 1.2rem; font-weight: bold; text-align: left; overflow: hidden; }
         
-        /* BIGGER LCD TEXT */
-        .lcd-display { 
-            background: #001a1d; 
-            border: 10px solid #111; 
-            padding: 15px; 
-            height: 120px; 
-            margin-bottom: 20px; 
-            color: var(--lcd-blue); 
-            text-shadow: 0 0 12px var(--lcd-glow); 
-            font-size: 1.3rem; /* Increased from 0.95rem */
-            font-weight: bold;
-            line-height: 1.2; 
-            text-align: left; 
-            letter-spacing: 1px;
-        }
+        /* Scrolling Logic */
+        .scroll-container { width: 100%; white-space: nowrap; overflow: hidden; position: relative; height: 1.5em; border-bottom: 1px solid rgba(0,229,255,0.1); }
+        .scroll-text { display: inline-block; padding-left: 100%; animation: scroll-left 10s linear infinite; }
+        @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         .vol-btn { background: #0047ab; color: white; border: 2px solid #000; padding: 10px; font-size: 0.8rem; margin-bottom: 15px; cursor: pointer; width: 120px; border-radius: 5px; box-shadow: 0 3px #002355; font-weight: bold; }
-        .vol-btn:active { transform: translateY(3px); box-shadow: 0 0 #002355; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         button.key { background: #444; color: white; border: none; padding: 20px; font-size: 1.7rem; border-radius: 5px; cursor: pointer; box-shadow: 0 4px #222; }
-        button.key:active { transform: translateY(4px); box-shadow: 0 0 #222; }
         .handset-btn { width: 100%; background: #a00; color: white; padding: 18px; margin-bottom: 15px; font-size: 1.2rem; cursor: pointer; border-radius: 5px; box-shadow: 0 4px #600; font-weight: bold; }
         .handset-btn.off-hook { background: #0a0; box-shadow: 0 4px #060; }
     </style>
@@ -37,10 +25,10 @@
 <body>
 <div class="payphone-container">
     <div class="lcd-display" id="lcd">
-        <div id="line1">LIFT HANDSET /</div>
-        <div id="line2">LEVANTE</div>
-        <div id="line3">ON HOOK</div>
-        <div id="line4">&nbsp;</div>
+        <div class="scroll-container"><div class="scroll-text">OMAHA PAYPHONE PROJECT</div></div>
+        <div id="line2" class="scroll-container"><div class="scroll-text">LIFT HANDSET / LEVANTE</div></div>
+        <div id="line3" class="scroll-container"><div class="scroll-text">ON HOOK</div></div>
+        <div id="line4" class="scroll-container">&nbsp;</div>
     </div>
     <button id="handset-toggle" class="handset-btn" onclick="toggleHandset()">LIFT HANDSET / LEVANTE</button>
     <button class="vol-btn" onclick="cycleVolume()">VOLUME <br> PRESS</button>
