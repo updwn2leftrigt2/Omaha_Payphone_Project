@@ -19,17 +19,17 @@ const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project
 
 const ui = {
     en: { 
-        dialNum: "DIAL NUMBER", 
-        rndPrompt: "5: RANDOM TRACK",
-        directory: "00# DIRECTORY", 
+        rndPrompt: "DIAL 5 FOR RANDOM",
+        dirPrompt: "DIAL 00# FOR DIRECTORY",
+        dialNum: "OR DIAL ARTIST #",
         prevNext: "4< PREV | 5:RND | 6> NEXT", 
         dirNav: "2^ UP / 8v DOWN / # PLAY", 
         invalid: "INVALID" 
     },
     es: { 
-        dialNum: "MARQUE NUMERO", 
-        rndPrompt: "5: TOQUE AL AZAR",
-        directory: "00# DIRECTORIO", 
+        rndPrompt: "MARQUE 5 AL AZAR",
+        dirPrompt: "00# PARA DIRECTORIO",
+        dialNum: "O MARQUE NUMERO",
         prevNext: "4< ANT | 5:AZAR | 6> SIG", 
         dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", 
         invalid: "INVALIDO" 
@@ -111,8 +111,8 @@ function refreshDisplay() {
     } else if (isDirectoryOpen) {
         showDirectoryEntry();
     } else if (currentTrackNum === 1) {
-        // NEW MAIN MENU SCREEN PROMPT
-        updateLCDWithSync(lang.rndPrompt, lang.directory, lang.dialNum);
+        // UPDATED MAIN MENU SCREEN PROMPTS
+        updateLCDWithSync(lang.rndPrompt, lang.dirPrompt, lang.dialNum);
     } else {
         const track = directory[currentTrackNum];
         const displayNum = currentTrackNum.toString().padStart(2, '0');
