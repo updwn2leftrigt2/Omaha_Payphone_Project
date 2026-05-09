@@ -13,26 +13,11 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: {
-        dialNum: "DIAL NUMBER",
-        directory: "00# DIRECTORY",
-        prevNext: "4< PREV | 5:RND | 6> NEXT",
-        dirNav: "2^ UP / 8v DOWN / # PLAY",
-        invalid: "INVALID NUMBER",
-        mainMenu: "MAIN MENU"
-    },
-    es: {
-        dialNum: "MARQUE NUMERO",
-        directory: "00# DIRECTORIO",
-        prevNext: "4< ANT | 5:AZAR | 6> SIG",
-        dirNav: "2^ SUBIR/8v BAJAR/# TOCAR",
-        invalid: "NUMERO INVALIDO",
-        mainMenu: "MENU PRINCIPAL"
-    }
+    en: { dialNum: "DIAL NUMBER", directory: "00# DIRECTORY", prevNext: "4< PREV | 5:RND | 6> NEXT", dirNav: "2^ UP / 8v DOWN / # PLAY", invalid: "INVALID NUMBER" },
+    es: { dialNum: "MARQUE NUMERO", directory: "00# DIRECTORIO", prevNext: "4< ANT | 5:AZAR | 6> SIG", dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", invalid: "NUMERO INVALIDO" }
 };
 
 const directory = {
@@ -136,55 +121,52 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return;
 
-    // Phase 1: Language Prompt Check
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
 
-    // ASTERISK (*) MAIN MENU OVERRIDE
-    if (key === '*') {
-        isDirectoryOpen = false;
-        inputString = "";
-        playTrack(1); // Return to Dial Tone
-        return;
-    }
+    if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
 
-    // Directory Shortcut
-    if ((inputString + key).includes("00#")) {
+    inputString += key;
+
+    if (inputString.includes("00#")) {
         isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
         return;
     }
 
-    // Phase 2: Directory Controls
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
-        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
-        else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
+        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); inputString = ""; }
+        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); inputString = ""; }
+        else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; inputString = ""; }
         return;
     }
 
-    // Phase 3: Playback Controls (Active only if no digits are being dialed)
-    if (currentTrackNum > 1 && inputString === "") {
-        if (key === '5') { playRandom(); return; }
-        if (key === '4') { playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); return; }
-        if (key === '6') { playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); return; }
-    }
-
-    // Phase 4: Build Dialing String
+    // THE WORKAROUND: If # is pressed, process the string. 
+    // If a single command (4, 5, 6) is pressed ALONE, wait 500ms to see if more digits follow.
     if (key === '#') {
         const dialed = parseInt(inputString);
         if (directory[dialed]) playTrack(dialed);
         else {
             updateLCDWithSync(ui[currentLang].invalid, " ", " ");
-            setTimeout(refreshDisplay, 2000);
+            setTimeout(refreshDisplay, 1500);
         }
         inputString = "";
     } else {
-        inputString += key;
-        document.getElementById('line2').innerText = "DIALING...";
-        document.getElementById('line3').innerText = inputString;
+        updateLCDWithSync("DIALING...", inputString, " ");
+        
+        // Timer logic for single-digit commands (4, 5, 6)
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
+            setTimeout(() => {
+                if (inputString === key) { // No other digits were typed
+                    if (key === '5') playRandom();
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    inputString = "";
+                }
+            }, 600); // 0.6 second window to type a second digit
+        }
     }
 }
 
@@ -195,7 +177,7 @@ function showDirectoryEntry() {
 }
 
 function playRandom() {
-    let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (rand === 30 || rand === 43);
+    let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (directory[rand] === undefined);
     playTrack(rand);
 }
 
@@ -203,15 +185,11 @@ function playTrack(num) {
     if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
     currentTrackNum = num;
     audio.pause();
-    
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
-    
     refreshDisplay();
-
     setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file;
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
