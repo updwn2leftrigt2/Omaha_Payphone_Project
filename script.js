@@ -7,8 +7,6 @@ let isOffHook = false;
 let inputString = "";
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
-
-// DIRECT SERVER URL FROM YOUR DIRECTORY LIST
 const baseUrl = "https://archive.org";
 
 const directory = {
@@ -58,19 +56,14 @@ const directory = {
     46: { title: "Against Distance", artist: "Trey Moody" },
     47: { title: "All Nighter", artist: "UN-T.I.L." },
     48: { title: "To Word Counts", artist: "Victoria Bogatz" },
-    49: { title: "The Ocelot", artist: "Winston F. Schneider" },
-    99: { title: "CLICK", artist: "RELAY" }
+    49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
-function updateLCD(l1, l2, l3, l4 = "&nbsp;") {
-    const lcdDiv = document.getElementById('lcd');
-    const lines = lcdDiv.getElementsByTagName('div');
-    if (lines.length >= 4) {
-        lines[0].innerText = l1;
-        lines[1].innerText = l2;
-        lines[2].innerText = l3;
-        lines[3].innerHTML = l4;
-    }
+function updateLCD(l1, l2, l3, l4) {
+    document.getElementById('line1').innerText = l1;
+    document.getElementById('line2').innerText = l2;
+    document.getElementById('line3').innerText = l3;
+    document.getElementById('line4').innerHTML = l4 || "&nbsp;";
 }
 
 function cycleVolume() {
@@ -85,52 +78,41 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
     if (isOffHook) {
-        btn.innerText = "HANG UP / COLGAR";
-        btn.classList.add('off-hook');
-        playTrack(1); // Dial Tone (0001.mp3)
+        btn.innerText = "HANG UP / COLGAR"; btn.classList.add('off-hook');
+        playTrack(1); 
     } else {
-        btn.innerText = "LIFT HANDSET / LEVANTE";
-        btn.classList.remove('off-hook');
+        btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
         updateLCD("LIFT HANDSET /", "LEVANTE", "ON HOOK", "&nbsp;");
-        audio.pause();
-        audio.src = "";
-        inputString = "";
+        audio.pause(); audio.removeAttribute('src'); audio.load(); inputString = "";
     }
 }
 
 function playTrack(num) {
     if (num === 30 || num === 43) {
-        updateLCD("STAY TUNED", "TRACK COMING SOON", "---", ""); 
-        return;
+        updateLCD("STAY TUNED", "TRACK COMING SOON", "---", ""); return;
     }
-
     const track = directory[num];
     if (!track) return;
 
-    // 1. Reset and clear previous state
+    // Reset Audio to clear "NotSupportedError"
     audio.pause();
-    audio.removeAttribute('src'); 
+    audio.removeAttribute('src');
     audio.load();
 
-    // 2. Play "Click" (Track 0099)
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(e => console.log("Click skipped"));
 
-    // 3. Prepare the next track
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
-        audio.load(); // Force the browser to re-examine the source
-
-        // 4. WAIT for the server to confirm the file is valid before playing
-        audio.oncanplaythrough = () => {
+        audio.load();
+        
+        // Only play once the browser confirms it can play the file
+        audio.oncanplay = () => {
             audio.play().then(() => {
                 updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
-                audio.oncanplaythrough = null; // Clean up listener
-            }).catch(e => {
-                console.error("Playback failed:", e);
-                updateLCD("ERROR", "RETRY DIALING", "", "");
-            });
+                audio.oncanplay = null; 
+            }).catch(e => console.error("Play failed:", e));
         };
     }, 400);
 }
@@ -139,13 +121,9 @@ function press(key) {
     if (!isOffHook) return;
     inputString += key;
     updateLCD("DIALING...", inputString, "---", "");
-
     if (inputString === "00#") {
-        let rand; 
-        do { rand = Math.floor(Math.random() * 48) + 2; } 
-        while (rand === 30 || rand === 43);
-        playTrack(rand); 
-        inputString = "";
+        let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (rand === 30 || rand === 43);
+        playTrack(rand); inputString = "";
     } else if (inputString.length >= 4) {
         setTimeout(() => { inputString = ""; updateLCD("OFF HOOK", "DIAL NUMBER", "---", ""); }, 1500);
     }
