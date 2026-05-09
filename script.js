@@ -66,16 +66,18 @@ const directory = {
 
 function writeLine(id, text) {
     const el = document.getElementById(id);
-    // Line 4 is designated as the stationary navigation line
+    
+    // Line 4 is the stationary navigation line - NO DUPLICATION
     if (id === 'line4') {
-        el.innerText = text;
+        el.innerHTML = text; // Just show the text once
         return;
     }
-    // All other lines scroll if text > 18 chars
+
+    // Lines 2 and 3 scroll and duplicate only if text is longer than 18 characters
     if (text.length > 18) {
         el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
     } else {
-        el.innerText = text;
+        el.innerHTML = text; // Show normally if short enough
     }
 }
 
