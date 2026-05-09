@@ -7,7 +7,6 @@ let isOffHook = false;
 let inputString = "";
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
-
 const baseUrl = "https://archive.org";
 
 const directory = {
@@ -93,10 +92,12 @@ function playTrack(num) {
     }
     const track = directory[num];
     if (!track) return;
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play();
+    clickAudio.src = baseUrl + "0099.mp3";
+    clickAudio.play();
     setTimeout(() => {
         let file = num < 10 ? `000${num}.mp3` : `00${num}.mp3`;
-        audio.src = baseUrl + file; audio.play();
+        audio.src = baseUrl + file;
+        audio.play();
         updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
     }, 500);
 }
@@ -109,6 +110,6 @@ function press(key) {
         let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (rand === 30 || rand === 43);
         playTrack(rand); inputString = "";
     } else if (inputString.length >= 3) {
-        setTimeout(() => { if(inputString.length >= 3) inputString = ""; }, 2000);
+        setTimeout(() => { inputString = ""; }, 2000);
     }
 }
