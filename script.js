@@ -14,26 +14,11 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { 
-        rndPrompt: "DIAL 5 FOR RANDOM",
-        dirPrompt: "DIAL 00# FOR DIRECTORY",
-        dialNum: "OR DIAL ARTIST #",
-        prevNext: "4< PREV | 5:RND | 6> NEXT", 
-        dirNav: "2^ UP / 8v DOWN / # PLAY", 
-        invalid: "INVALID" 
-    },
-    es: { 
-        rndPrompt: "MARQUE 5 AL AZAR",
-        dirPrompt: "00# PARA DIRECTORIO",
-        dialNum: "O MARQUE NUMERO",
-        prevNext: "4< ANT | 5:AZAR | 6> SIG", 
-        dirNav: "2^ SUBIR/8v BAJAR/# TOCAR", 
-        invalid: "INVALIDO" 
-    }
+    en: { rnd: "DIAL 5 FOR RANDOM", dir: "DIAL 00# FOR DIRECTORY", dial: "OR DIAL ARTIST #", nav: "4< PREV | 5:RND | 6> NEXT", dNav: "2^UP/8vDN/#PLAY", inv: "INVALID" },
+    es: { rnd: "MARQUE 5 AL AZAR", dir: "00# PARA DIRECTORIO", dial: "O MARQUE NUMERO", nav: "4< ANT | 5:AZAR | 6> SIG", dNav: "2^SUBIR/8vBAJAR/#TOCAR", inv: "INVALIDO" }
 };
 
 const directory = {
@@ -89,15 +74,15 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') { el.innerText = "OMAHA PAYPHONE PROJECT"; return; }
-    if (id === 'line4') { el.innerText = text; return; }
+    // Remove duplication for static centering unless forced
     if (forceScroll || text.length > 18) {
         el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
     } else {
-        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
+        el.innerText = text;
     }
 }
 
-function updateLCDWithSync(l2, l3, l4) {
+function updateLCD(l2, l3, l4) {
     const force = l2.length > 18 || l3.length > 18;
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
@@ -106,17 +91,12 @@ function updateLCDWithSync(l2, l3, l4) {
 
 function refreshDisplay() {
     const lang = ui[currentLang];
-    if (!isLanguageSelected) {
-        updateLCDWithSync("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
-    } else if (isDirectoryOpen) {
-        showDirectoryEntry();
-    } else if (currentTrackNum === 1) {
-        // UPDATED MAIN MENU SCREEN PROMPTS
-        updateLCDWithSync(lang.rndPrompt, lang.dirPrompt, lang.dialNum);
-    } else {
-        const track = directory[currentTrackNum];
-        const displayNum = currentTrackNum.toString().padStart(2, '0');
-        updateLCDWithSync(`${displayNum} ${track.artist}`, track.title, lang.prevNext);
+    if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
+    else if (isDirectoryOpen) showDirectoryEntry();
+    else if (currentTrackNum === 1) updateLCD(lang.rnd, lang.dir, lang.dial);
+    else {
+        const t = directory[currentTrackNum];
+        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav);
     }
 }
 
@@ -125,32 +105,22 @@ function toggleHandset() {
     const btn = document.getElementById('handset-toggle');
     if (isOffHook) {
         btn.innerText = "HANG UP / COLGAR"; btn.classList.add('off-hook');
-        isLanguageSelected = false;
-        playTrack(100); 
+        isLanguageSelected = false; playTrack(100); 
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
-        updateLCDWithSync("LEVANTE", "ON HOOK", " ");
-        audio.pause(); audio.src = "";
-        isDirectoryOpen = false; inputString = "";
-        if (cmdTimer) clearTimeout(cmdTimer);
+        updateLCD("LEVANTE", "ON HOOK", " ");
+        audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
 
 function press(key) {
     if (!isOffHook) return;
-
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
-
-    if (key === '*') {
-        if (cmdTimer) clearTimeout(cmdTimer);
-        isDirectoryOpen = false; inputString = "";
-        playTrack(1); return;
-    }
-
+    if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
     if (isDirectoryOpen) {
@@ -161,24 +131,22 @@ function press(key) {
     }
 
     if (key === '#') {
-        if (inputString === "00") {
-            isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry();
-        } else {
+        if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); }
+        else {
             const dialed = parseInt(inputString);
             if (directory[dialed]) playTrack(dialed);
-            else { updateLCDWithSync(ui[currentLang].invalid, inputString, " "); setTimeout(refreshDisplay, 1500); }
+            else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); }
         }
         inputString = "";
     } else {
         inputString += key;
-        updateLCDWithSync("DIALING...", inputString, " ");
-
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
+        updateLCD("DIALING...", inputString, " ");
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
             cmdTimer = setTimeout(() => {
-                if (inputString === key) { 
+                if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
@@ -188,27 +156,23 @@ function press(key) {
 }
 
 function showDirectoryEntry() {
-    const entry = directory[directoryIndex];
-    const displayNum = directoryIndex.toString().padStart(2, '0');
-    updateLCDWithSync(`${displayNum} ${entry.artist}`, entry.title, ui[currentLang].dirNav);
+    const e = directory[directoryIndex];
+    updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dNav);
 }
 
 function playRandom() {
-    let rand; do { rand = Math.floor(Math.random() * 48) + 2; } while (directory[rand] === undefined);
-    playTrack(rand);
+    let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined);
+    playTrack(r);
 }
 
 function playTrack(num) {
-    if (num === 30 || num === 43) { updateLCDWithSync("COMING SOON", "OMAHA PAYPHONE", "DIRECTORY"); return; }
-    currentTrackNum = num;
-    audio.pause();
+    if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
+    currentTrackNum = num; audio.pause();
     clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
-    
     refreshDisplay();
     setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file;
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
@@ -216,8 +180,7 @@ function playTrack(num) {
 
 function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
-    audio.volume = volLevels[volIndex];
-    clickAudio.volume = volLevels[volIndex];
-    document.getElementById('line2').innerHTML = "VOLUME: " + "I".repeat(volIndex + 1);
+    audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex];
+    writeLine('line2', "VOLUME: " + "I".repeat(volIndex + 1));
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
