@@ -11,7 +11,7 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT URL ---
+// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const directory = {
@@ -95,7 +95,9 @@ function refreshDisplay() {
         updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
     } else {
         const track = directory[currentTrackNum];
-        updateLCD(track.artist, track.title, "4< PREV | 5:RND | 6> NEXT");
+        const displayNum = currentTrackNum.toString().padStart(2, '0');
+        // Displays number before artist name while playing
+        updateLCD(`${displayNum} ${track.artist}`, track.title, "4< PREV | 5:RND | 6> NEXT");
     }
 }
 
@@ -168,15 +170,15 @@ function playTrack(num) {
     if (!track) return;
     currentTrackNum = num; audio.pause();
     
-    // Play Click using FULL URL
-    clickAudio.src = "https://archive.org";
+    // Direct link for the relay click sound
+    clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     
     refreshDisplay();
 
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file; // Full URL appended here
+        audio.src = baseUrl + file;
         audio.load();
         audio.play().then(() => { if (num !== 1) refreshDisplay(); }).catch(e => console.error("Playback failed", e));
     }, 400);
