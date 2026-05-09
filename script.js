@@ -11,6 +11,7 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// --- FULL DIRECT URL AS REQUESTED ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const directory = {
@@ -63,26 +64,35 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
+function writeLine(id, text) {
+    const el = document.getElementById(id);
+    if (text.length > 18) {
+        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+    } else {
+        el.innerText = text;
+    }
+}
+
 function updateLCD(l2, l3, l4) {
-    document.getElementById('line2').innerHTML = `<div class="scroll-text">${l2}</div>`;
-    document.getElementById('line3').innerHTML = `<div class="scroll-text">${l3}</div>`;
-    document.getElementById('line4').innerHTML = `<div class="scroll-text">${l4 || "&nbsp;"}</div>`;
+    writeLine('line2', l2);
+    writeLine('line3', l3);
+    writeLine('line4', l4 || " ");
 }
 
 function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
     audio.volume = volLevels[volIndex];
     clickAudio.volume = volLevels[volIndex];
-    document.getElementById('line2').innerHTML = "VOLUME: " + "I".repeat(volIndex + 1);
+    document.getElementById('line2').innerText = "VOLUME: " + "I".repeat(volIndex + 1);
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
 
 function refreshDisplay() {
     if (isDirectoryOpen) showDirectoryEntry();
-    else if (audio.paused) updateLCD("DIAL NUMBER", "00# DIRECTORY", "DIAL ARTIST # + #");
+    else if (audio.paused || currentTrackNum === 1) updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
     else {
         const track = directory[currentTrackNum];
-        updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5: RND | 6> NEXT");
+        updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5:RND | 6> NEXT");
     }
 }
 
@@ -94,7 +104,7 @@ function toggleHandset() {
         playTrack(1); 
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
-        updateLCD("LEVANTE", "ON HOOK", "&nbsp;");
+        updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = "";
         isDirectoryOpen = false; inputString = "";
     }
@@ -103,36 +113,40 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return;
 
+    inputString += key;
+
+    // 00# override works at any time
+    if (inputString.includes("00#")) {
+        isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
+        return;
+    }
+
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = directoryIndex > 2 ? directoryIndex - 1 : 49; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = directoryIndex < 49 ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         else if (key === '*') { isDirectoryOpen = false; refreshDisplay(); }
+        inputString = ""; // Reset string inside directory
         return;
     }
 
-    if (key === '5') playRandom();
-    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
-    else {
-        inputString += key;
-        document.getElementById('line2').innerHTML = "DIALING...";
-        document.getElementById('line3').innerHTML = inputString;
-
-        if (inputString === "00#") {
-            isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
-        } else if (key === '#') { 
-            const dialed = parseInt(inputString.replace('#',''));
-            if (directory[dialed]) playTrack(dialed);
-            else updateLCD("INVALID", "NUMBER", "TRY AGAIN");
-            inputString = "";
-        }
+    if (key === '5') { playRandom(); inputString = ""; }
+    else if (key === '4') { playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); inputString = ""; }
+    else if (key === '6') { playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; }
+    else if (key === '#') {
+        const dialed = parseInt(inputString.replace('#',''));
+        if (directory[dialed]) playTrack(dialed);
+        else updateLCD("INVALID", "NUMBER", "TRY AGAIN");
+        inputString = "";
+    } else {
+        document.getElementById('line2').innerText = "DIALING...";
+        document.getElementById('line3').innerText = inputString;
     }
 }
 
 function showDirectoryEntry() {
     const entry = directory[directoryIndex];
-    updateLCD(entry.artist, "PRESS # TO PLAY", "2^ UP / 8v DOWN / * EXIT");
+    updateLCD(entry.artist, "PRESS # TO PLAY", "2^ UP / 8v DOWN");
 }
 
 function playRandom() {
@@ -145,10 +159,18 @@ function playTrack(num) {
     const track = directory[num];
     if (!track) return;
     currentTrackNum = num; audio.pause();
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play();
+    
+    // Play Click
+    clickAudio.src = baseUrl + "0099.mp3";
+    clickAudio.play().catch(() => {});
+    
+    // Set LCD
+    if (num === 1) updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
+    else updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5:RND | 6> NEXT");
+
     setTimeout(() => {
         audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
-        audio.play().then(() => { refreshDisplay(); });
+        audio.play().then(() => { if (num !== 1) refreshDisplay(); });
     }, 400);
 }
