@@ -8,9 +8,10 @@ let inputString = "";
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// DIRECT SERVER URL FROM YOUR DIRECTORY LIST
+// The direct server path you verified
 const baseUrl = "https://archive.org";
 
+// Full Directory from your Arduino code
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -82,13 +83,13 @@ function toggleHandset() {
     if (isOffHook) {
         btn.innerText = "HANG UP / COLGAR";
         btn.classList.add('off-hook');
-        playTrack(1); // Dial Tone
+        playTrack(1); 
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE";
         btn.classList.remove('off-hook');
         updateLCD("LIFT HANDSET /", "LEVANTE", "ON HOOK", "&nbsp;");
         audio.pause();
-        audio.removeAttribute('src'); 
+        audio.removeAttribute('src'); // Completely clear the source
         audio.load();
         inputString = "";
     }
@@ -103,7 +104,7 @@ function playTrack(num) {
     const track = directory[num];
     if (!track) return;
 
-    // Reset Audio object state to clear errors
+    // Reset Audio to clear previous stream errors
     audio.pause();
     audio.removeAttribute('src');
     audio.load();
@@ -112,20 +113,23 @@ function playTrack(num) {
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(e => console.log("Click skipped"));
 
-    // SMALL BUFFER: Let the browser handshake with the server
-    setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file;
-        audio.load();
-        
-        // Final attempt to play after handshake
+    // Prepare the next file
+    const file = num.toString().padStart(4, '0') + ".mp3";
+    audio.src = baseUrl + file;
+
+    // CHROME FIX: Wait for the browser to find the audio stream before playing
+    audio.oncanplay = () => {
         audio.play().then(() => {
             updateLCD("NOW PLAYING:", track.title, "BY:", track.artist);
+            audio.oncanplay = null; // Remove listener after success
         }).catch(e => {
             console.error("Playback failed:", e);
             updateLCD("ERROR", "RE-CLICK LIFT", "---", "");
         });
-    }, 500);
+    };
+
+    // Force a reload if it gets stuck
+    audio.load();
 }
 
 function press(key) {
