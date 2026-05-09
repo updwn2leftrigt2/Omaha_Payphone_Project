@@ -11,9 +11,9 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT URL ---
 const baseUrl = "https://archive.org";
 
+// --- DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -64,10 +64,11 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
-function writeLine(id, text) {
+function writeLine(id, text, isSlow = false) {
     const el = document.getElementById(id);
+    const scrollClass = isSlow ? 'slow-scroll' : 'scroll-wrap';
     if (text.length > 18) {
-        el.innerHTML = `<div class="scroll-wrap">${text} &nbsp;&nbsp; ${text}</div>`;
+        el.innerHTML = `<div class="${scrollClass}">${text} &nbsp;&nbsp; ${text}</div>`;
     } else {
         el.innerText = text;
     }
@@ -76,7 +77,7 @@ function writeLine(id, text) {
 function updateLCD(l2, l3, l4) {
     writeLine('line2', l2);
     writeLine('line3', l3);
-    writeLine('line4', l4 || " ");
+    writeLine('line4', l4 || " ", true); // Line 4 is always the slow scroll
 }
 
 function cycleVolume() {
@@ -94,7 +95,7 @@ function refreshDisplay() {
         updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
     } else {
         const track = directory[currentTrackNum];
-        updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5:RND | 6> NEXT");
+        updateLCD(track.artist, track.title, "4< PREV | 5:RND | 6> NEXT");
     }
 }
 
@@ -131,8 +132,8 @@ function press(key) {
     }
 
     if (key === '5') { playRandom(); inputString = ""; }
-    else if (key === '4') { playTrack(currentTrackNum > 2 ? (currentTrackNum - 1 === 30 || currentTrackNum - 1 === 43 ? currentTrackNum - 2 : currentTrackNum - 1) : 49); inputString = ""; }
-    else if (key === '6') { playTrack(currentTrackNum < 49 ? (currentTrackNum + 1 === 30 || currentTrackNum + 1 === 43 ? currentTrackNum + 2 : currentTrackNum + 1) : 2); inputString = ""; }
+    else if (key === '4') { playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49); inputString = ""; }
+    else if (key === '6') { playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2); inputString = ""; }
     else if (key === '#') {
         const dialed = parseInt(inputString.replace('#',''));
         if (directory[dialed]) playTrack(dialed);
@@ -146,7 +147,9 @@ function press(key) {
 
 function showDirectoryEntry() {
     const entry = directory[directoryIndex];
-    updateLCD(entry.artist, "PRESS # TO PLAY", "2^ UP / 8v DOWN");
+    // Pad number to 2 digits for directory display
+    const displayNum = directoryIndex.toString().padStart(2, '0');
+    updateLCD(`${displayNum} ${entry.artist}`, entry.title, "2^ UP / 8v DOWN / # PLAY");
 }
 
 function playRandom() {
@@ -161,7 +164,6 @@ function playTrack(num) {
     currentTrackNum = num; audio.pause();
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     
-    // Immediate display update based on track number
     refreshDisplay();
 
     setTimeout(() => {
