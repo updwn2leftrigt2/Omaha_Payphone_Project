@@ -1,23 +1,26 @@
+// --- CONFIGURATION ---
 const audio = new Audio();
-audio.crossOrigin = "anonymous"; // CRITICAL: Fixes CORS errors for Archive.org
+audio.crossOrigin = "anonymous"; // Essential for Archive.org CORS
 
 let isOffHook = false;
 let inputString = "";
+// This base URL points to your specific /mp3/ subfolder
 const baseUrl = "https://archive.org";
 
 // --- TRACK LIST GENERATION ---
 const tracks = [];
 
-// Add sequential tracks 0002.mp3 through 0049.mp3
+// 1. Add sequential tracks 0002.mp3 through 0049.mp3
 for (let i = 2; i <= 49; i++) {
+    // Adds "000" for numbers 2-9, and "00" for 10-49 to match your filenames
     let fileName = i < 10 ? `000${i}.mp3` : `00${i}.mp3`;
     tracks.push(fileName);
 }
 
-// Add your specific extra tracks
+// 2. Add your specific out-of-sequence tracks
 tracks.push("0001.mp3", "0099.mp3", "0100.mp3");
 
-// Shuffle playlist setup
+// 3. Create a working copy for the non-repeating shuffle
 let playlist = [...tracks];
 
 // --- LCD DISPLAY LOGIC ---
@@ -26,7 +29,7 @@ function updateLCD(line3, line4 = "&nbsp;") {
     document.getElementById('input-display').innerHTML = line4;
 }
 
-// --- HANDSET LOGIC (STAGE 1 UNLOCK) ---
+// --- HANDSET LOGIC (LIFT/HANG UP) ---
 function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
@@ -36,14 +39,19 @@ function toggleHandset() {
         btn.classList.add('off-hook');
         updateLCD("OFF HOOK", "DIAL NUMBER");
         
-        // NOW PULLING FROM /mp3/ SUBFOLDER
-        audio.src = baseUrl + "0100.mp3";
-        audio.play().catch(e => console.log("Interaction required to start audio."));
+        // Use 0001.mp3 as the initial Dial Tone
+        audio.src = baseUrl + "0001.mp3";
+        audio.load();
+        audio.play().catch(e => {
+            console.log("Audio Init Wait...");
+            updateLCD("ERROR", "CLICK AGAIN");
+        });
     } else {
         btn.innerText = "LIFT HANDSET / LEVANTE";
         btn.classList.remove('off-hook');
         updateLCD("ON HOOK", "&nbsp;");
         audio.pause();
+        audio.currentTime = 0;
         inputString = "";
     }
 }
@@ -55,11 +63,12 @@ function press(key) {
     inputString += key;
     updateLCD("DIALING...", inputString);
 
-    // 00# Directory Logic
+    // If they dial 00#, trigger the random directory playback
     if (inputString === "00#") {
         playShuffle();
         inputString = "";
     } 
+    // Reset display if they type 4 or more digits without a command
     else if (inputString.length >= 4) {
         setTimeout(() => { 
             inputString = ""; 
@@ -68,19 +77,21 @@ function press(key) {
     }
 }
 
-// --- SHUFFLE LOGIC ---
+// --- SHUFFLE PLAYBACK LOGIC ---
 function playShuffle() {
+    // If we have played all songs, refill the playlist
     if (playlist.length === 0) playlist = [...tracks];
     
+    // Pick a random index and remove it from the playlist (non-repeating)
     const randomIndex = Math.floor(Math.random() * playlist.length);
     const track = playlist.splice(randomIndex, 1);
     
     updateLCD("PLAYING FROM", "DIRECTORY...");
     
-    // baseUrl already includes /mp3/ now
+    // Play the chosen track from the /mp3/ subfolder
     audio.src = baseUrl + track;
     audio.play().catch(e => {
-        console.error("Playback failed:", e);
+        console.error("Playback failed. Verify filename on Archive.org:", e);
         updateLCD("ERROR", "FILE NOT FOUND");
     });
 }
