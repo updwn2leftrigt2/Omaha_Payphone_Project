@@ -11,9 +11,9 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-const baseUrl = "https://archive.org";
+// --- FULL DIRECT URL ---
+const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
-// --- DIRECTORY ---
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
     2: { title: "Peacocks Patient", artist: "Alina Nguyen" },
@@ -77,7 +77,7 @@ function writeLine(id, text, isSlow = false) {
 function updateLCD(l2, l3, l4) {
     writeLine('line2', l2);
     writeLine('line3', l3);
-    writeLine('line4', l4 || " ", true); // Line 4 is always the slow scroll
+    writeLine('line4', l4 || " ", true); 
 }
 
 function cycleVolume() {
@@ -132,8 +132,14 @@ function press(key) {
     }
 
     if (key === '5') { playRandom(); inputString = ""; }
-    else if (key === '4') { playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49); inputString = ""; }
-    else if (key === '6') { playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2); inputString = ""; }
+    else if (key === '4') { 
+        let prev = currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49; 
+        playTrack(prev); inputString = ""; 
+    }
+    else if (key === '6') { 
+        let next = currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2; 
+        playTrack(next); inputString = ""; 
+    }
     else if (key === '#') {
         const dialed = parseInt(inputString.replace('#',''));
         if (directory[dialed]) playTrack(dialed);
@@ -147,7 +153,6 @@ function press(key) {
 
 function showDirectoryEntry() {
     const entry = directory[directoryIndex];
-    // Pad number to 2 digits for directory display
     const displayNum = directoryIndex.toString().padStart(2, '0');
     updateLCD(`${displayNum} ${entry.artist}`, entry.title, "2^ UP / 8v DOWN / # PLAY");
 }
@@ -162,13 +167,17 @@ function playTrack(num) {
     const track = directory[num];
     if (!track) return;
     currentTrackNum = num; audio.pause();
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
+    
+    // Play Click using FULL URL
+    clickAudio.src = "https://archive.org";
+    clickAudio.play().catch(() => {});
     
     refreshDisplay();
 
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file; // Full URL appended here
         audio.load();
-        audio.play().then(() => { refreshDisplay(); }).catch(e => console.error("Playback failed", e));
+        audio.play().then(() => { if (num !== 1) refreshDisplay(); }).catch(e => console.error("Playback failed", e));
     }, 400);
 }
