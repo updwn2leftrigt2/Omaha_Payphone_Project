@@ -18,8 +18,8 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { rnd: "DIAL 5 FOR RANDOM", dir: "DIAL 00# FOR DIRECTORY", dial: "OR DIAL ARTIST #", nav: "4<PREV | 5:RND | 6>NEXT", dNav: "2^UP/8vDN/#PLAY", inv: "INVALID" },
-    es: { rnd: "MARQUE 5 AL AZAR", dir: "00# PARA DIRECTORIO", dial: "O MARQUE NUMERO", nav: "4<ANT | 5:AZAR | 6>SIG", dNav: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
+    en: { rnd: "DIAL 5 FOR RANDOM", dir: "DIAL 00# FOR DIRECTORY", dial: "OR DIAL ARTIST #", nav: "4< PREV | 5:RND | 6> NEXT", dNav: "2^UP/8vDN/#PLAY", inv: "INVALID" },
+    es: { rnd: "MARQUE 5 AL AZAR", dir: "00# PARA DIRECTORIO", dial: "O MARQUE NUMERO", nav: "4< ANT | 5:AZAR | 6> SIG", dNav: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
 };
 
 const directory = {
@@ -74,26 +74,18 @@ const directory = {
 
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
-    if (id === 'line1') return; // Stationary Header
-    
-    // Line 4 (Navigation) is always stationary and centered
-    if (id === 'line4') {
-        el.innerText = text;
-        el.innerHTML = text; // ensures centering div
-        return;
-    }
-
-    // Artist/Track lines scroll ONLY if too long (> 20 chars) or forced by sync
+    if (id === 'line1') return; // Stationary pulsing header
+    if (id === 'line4') { el.innerText = text; return; }
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
-        el.innerText = text;
+        el.innerHTML = `<div>${text}</div>`;
     }
 }
 
 function updateLCD(l2, l3, l4) {
-    // Check if either line 2 or 3 needs scrolling
-    const force = l2.length > 20 || l3.length > 20;
+    // Disable scroll for Main Menu (Track 1)
+    let force = (currentTrackNum !== 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false;
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
     writeLine('line4', l4);
@@ -178,7 +170,7 @@ function playRandom() {
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
-    clickAudio.src = "https://archive.org0099.mp3";
+    clickAudio.src = "https://archive.org";
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
