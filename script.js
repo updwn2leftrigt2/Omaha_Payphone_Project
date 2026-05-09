@@ -8,7 +8,10 @@ let isDirectoryOpen = false;
 let inputString = "";
 let currentTrackNum = 1;
 let directoryIndex = 2; 
+let volIndex = 1; 
+const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// The direct server path you verified
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const directory = {
@@ -66,6 +69,17 @@ function updateLCD(l1, l2, l3, l4) {
     document.getElementById('line2').innerText = l2;
     document.getElementById('line3').innerText = l3;
     document.getElementById('line4').innerHTML = l4 || "&nbsp;";
+}
+
+function cycleVolume() {
+    volIndex = (volIndex + 1) % volLevels.length;
+    audio.volume = volLevels[volIndex];
+    clickAudio.volume = volLevels[volIndex];
+    updateLCD("VOLUME LEVEL:", "I".repeat(volIndex + 1), "---", "---");
+    setTimeout(() => { 
+        if (isOffHook && !isDirectoryOpen) updateLCD("OFF HOOK", "DIAL NUMBER", "---", ""); 
+        else if (isDirectoryOpen) showDirectoryEntry();
+    }, 1500);
 }
 
 function toggleHandset() {
@@ -151,15 +165,14 @@ function playTrack(num) {
     currentTrackNum = num;
     audio.pause();
     
-    // Play Click and Audio immediately to satisfy Chrome
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(() => {});
 
+    // Correct 4-digit formatting (e.g. 0001.mp3)
     let file = num.toString().padStart(4, '0') + ".mp3";
     audio.src = baseUrl + file;
     audio.load();
     
-    // Attempt play immediately
     audio.play().then(() => {
         updateLCD(track.title, "BY: " + track.artist, "4< PREV | 6> NEXT", "5: SHUFFLE");
     }).catch(e => {
