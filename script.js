@@ -1,12 +1,15 @@
-// 1. Initialize audio without a source first
+// --- CONFIGURATION ---
 const audio = new Audio();
 audio.crossOrigin = "anonymous"; 
 
 let isOffHook = false;
 let inputString = "";
-const baseUrl = "https://archive.org";
 
-// --- TRACK LIST ---
+// Exact direct URLs to ensure no path errors
+const dialToneUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/0001.mp3";
+const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
+
+// --- TRACK LIST GENERATION ---
 const tracks = [];
 for (let i = 2; i <= 49; i++) {
     let fileName = i < 10 ? `000${i}.mp3` : `00${i}.mp3`;
@@ -15,12 +18,13 @@ for (let i = 2; i <= 49; i++) {
 tracks.push("0001.mp3", "0099.mp3", "0100.mp3");
 let playlist = [...tracks];
 
+// --- LCD DISPLAY LOGIC ---
 function updateLCD(line3, line4 = "&nbsp;") {
     document.getElementById('status').innerText = line3;
     document.getElementById('input-display').innerHTML = line4;
 }
 
-// 2. Updated toggle function to force "User Activation"
+// --- HANDSET LOGIC ---
 function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
@@ -30,19 +34,17 @@ function toggleHandset() {
         btn.classList.add('off-hook');
         updateLCD("OFF HOOK", "DIAL NUMBER");
         
-        // FORCING THE BROWSER TO PLAY
-        audio.src = baseUrl + "0001.mp3"; 
+        // Use the hard-coded dial tone link
+        audio.src = dialToneUrl;
         audio.load();
         
-        // This MUST be inside the click handler to work
-        var playPromise = audio.play();
-        
+        const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.then(_ => {
-                console.log("Playback started!");
+                console.log("Dial tone started!");
             }).catch(error => {
-                console.log("Playback failed: " + error);
-                updateLCD("ERROR", "TAP SCREEN & RELIFT");
+                console.error("Playback failed:", error);
+                updateLCD("ERROR", "TAP & RELIFT");
             });
         }
     } else {
@@ -55,6 +57,7 @@ function toggleHandset() {
     }
 }
 
+// --- KEYPAD LOGIC ---
 function press(key) {
     if (!isOffHook) return;
     inputString += key;
@@ -71,6 +74,7 @@ function press(key) {
     }
 }
 
+// --- SHUFFLE LOGIC ---
 function playShuffle() {
     if (playlist.length === 0) playlist = [...tracks];
     const randomIndex = Math.floor(Math.random() * playlist.length);
@@ -78,5 +82,8 @@ function playShuffle() {
     
     updateLCD("PLAYING FROM", "DIRECTORY...");
     audio.src = baseUrl + track;
-    audio.play();
+    audio.play().catch(e => {
+        console.error("Directory track failed:", e);
+        updateLCD("ERROR", "NOT FOUND");
+    });
 }
