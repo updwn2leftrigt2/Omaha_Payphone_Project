@@ -11,8 +11,8 @@ let directoryIndex = 2;
 let volIndex = 1; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT URL AS REQUESTED ---
-const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
+// --- FULL DIRECT URL ---
+const baseUrl = "https://archive.org";
 
 const directory = {
     1: { title: "DIAL TONE", artist: "SYSTEM" },
@@ -88,9 +88,11 @@ function cycleVolume() {
 }
 
 function refreshDisplay() {
-    if (isDirectoryOpen) showDirectoryEntry();
-    else if (audio.paused || currentTrackNum === 1) updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
-    else {
+    if (isDirectoryOpen) {
+        showDirectoryEntry();
+    } else if (currentTrackNum === 1) {
+        updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
+    } else {
         const track = directory[currentTrackNum];
         updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5:RND | 6> NEXT");
     }
@@ -114,8 +116,6 @@ function press(key) {
     if (!isOffHook) return;
 
     inputString += key;
-
-    // 00# override works at any time
     if (inputString.includes("00#")) {
         isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); inputString = "";
         return;
@@ -126,13 +126,13 @@ function press(key) {
         else if (key === '8') { directoryIndex = directoryIndex < 49 ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         else if (key === '*') { isDirectoryOpen = false; refreshDisplay(); }
-        inputString = ""; // Reset string inside directory
+        inputString = "";
         return;
     }
 
     if (key === '5') { playRandom(); inputString = ""; }
-    else if (key === '4') { playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); inputString = ""; }
-    else if (key === '6') { playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; }
+    else if (key === '4') { playTrack(currentTrackNum > 2 ? (currentTrackNum - 1 === 30 || currentTrackNum - 1 === 43 ? currentTrackNum - 2 : currentTrackNum - 1) : 49); inputString = ""; }
+    else if (key === '6') { playTrack(currentTrackNum < 49 ? (currentTrackNum + 1 === 30 || currentTrackNum + 1 === 43 ? currentTrackNum + 2 : currentTrackNum + 1) : 2); inputString = ""; }
     else if (key === '#') {
         const dialed = parseInt(inputString.replace('#',''));
         if (directory[dialed]) playTrack(dialed);
@@ -159,18 +159,14 @@ function playTrack(num) {
     const track = directory[num];
     if (!track) return;
     currentTrackNum = num; audio.pause();
+    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     
-    // Play Click
-    clickAudio.src = baseUrl + "0099.mp3";
-    clickAudio.play().catch(() => {});
-    
-    // Set LCD
-    if (num === 1) updateLCD("OFF HOOK", "DIAL NUMBER", "00# DIRECTORY");
-    else updateLCD(track.title, "BY: " + track.artist, "4< PREV | 5:RND | 6> NEXT");
+    // Immediate display update based on track number
+    refreshDisplay();
 
     setTimeout(() => {
         audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
-        audio.play().then(() => { if (num !== 1) refreshDisplay(); });
+        audio.play().then(() => { refreshDisplay(); }).catch(e => console.error("Playback failed", e));
     }, 400);
 }
