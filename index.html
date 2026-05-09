@@ -15,34 +15,23 @@
         
         .payphone-container { 
             background: var(--payphone-coral); 
-            padding: 30px; 
-            border-radius: 15px; 
-            border: 5px solid #d45d30; 
-            width: 340px; 
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            padding: 30px; border-radius: 15px; border: 5px solid #d45d30; width: 340px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
         
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 135px; 
-            margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 12px var(--lcd-glow); 
-            font-size: 1.2rem; font-weight: bold; text-align: left; overflow: hidden;
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 135px; margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 12px var(--lcd-glow); font-size: 1.2rem; font-weight: bold; text-align: left; overflow: hidden;
         }
 
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.5em; position: relative; }
         
-        /* STANDARD SCROLL (12s) */
+        /* METADATA SCROLL (Artist/Track) - Slower (24s) */
         .scroll-wrap { 
-            display: inline-block; 
-            padding-left: 100%; 
-            animation: auto-scroll 12s linear infinite; 
+            display: inline-block; padding-left: 100%; animation: auto-scroll 24s linear infinite; 
         }
 
-        /* 3X SLOWER SCROLL (36s) */
+        /* NAVIGATION SCROLL - Very Slow (48s) */
         .slow-scroll { 
-            display: inline-block; 
-            padding-left: 100%; 
-            animation: auto-scroll 36s linear infinite; 
+            display: inline-block; padding-left: 100%; animation: auto-scroll 48s linear infinite; 
         }
         
         @keyframes auto-scroll {
@@ -53,9 +42,7 @@
         .vol-btn { background: #0047ab; color: white; border: 2px solid #000; padding: 10px; font-size: 0.8rem; margin-bottom: 15px; cursor: pointer; width: 120px; border-radius: 5px; font-weight: bold; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         button.key { 
-            background: var(--button-silver); 
-            color: #333; border: 2px solid #888; padding: 20px; font-size: 1.7rem; 
-            border-radius: 5px; cursor: pointer; box-shadow: 0 4px #666; font-weight: bold;
+            background: var(--button-silver); color: #333; border: 2px solid #888; padding: 20px; font-size: 1.7rem; border-radius: 5px; cursor: pointer; box-shadow: 0 4px #666; font-weight: bold;
         }
         button.key:active { transform: translateY(4px); box-shadow: 0 0 #666; }
         .handset-btn { width: 100%; background: #a00; color: white; padding: 18px; margin-bottom: 15px; font-size: 1.2rem; cursor: pointer; border-radius: 5px; box-shadow: 0 4px #600; font-weight: bold; }
