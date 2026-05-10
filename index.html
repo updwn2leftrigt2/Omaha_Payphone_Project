@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omaha Payphone Project</title>
+    <title>Phone Interface - 402#</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -31,6 +31,7 @@
             border: 2px solid #444;
         }
 
+        /* LCD Screen */
         .lcd {
             background: #0a0a0a;
             color: var(--lcd-green);
@@ -46,14 +47,20 @@
             justify-content: center;
             font-size: 1rem;
             line-height: 1.4;
+            transition: all 0.3s ease;
         }
 
-        .lcd-flash { animation: subtle-flash 2s infinite ease-in-out; }
+        /* Subtle LCD Flash */
+        .lcd-flash {
+            animation: subtle-flash 2s infinite ease-in-out;
+        }
+
         @keyframes subtle-flash {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
 
+        /* Dialpad Grid */
         .dialpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -70,9 +77,15 @@
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            outline: none;
         }
 
-        /* Specific # Key Glows */
+        .dialpad button:active {
+            transform: scale(0.9);
+            background: #444;
+        }
+
+        /* Specific HASH key states */
         #key-hash.glow-ready {
             border-color: var(--ready-color);
             box-shadow: 0 0 15px var(--ready-color);
@@ -87,10 +100,12 @@
         }
 
         @keyframes hash-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 10px var(--recording-color); }
+            50% { transform: scale(1.08); box-shadow: 0 0 25px var(--recording-color); }
+            100% { transform: scale(1); box-shadow: 0 0 10px var(--recording-color); }
         }
+
+        #playback { display: none; }
     </style>
 </head>
 <body>
@@ -113,9 +128,7 @@
             <button id="key-hash" onclick="pressKey('#')">#</button>
         </div>
         
-        <!-- Audio elements for playback -->
-        <audio id="archive-player"></audio>
-        <audio id="recording-playback"></audio>
+        <audio id="playback"></audio>
     </div>
 
     <script src="script.js"></script>
