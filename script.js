@@ -85,7 +85,7 @@ function updateLCD(l2, l3, l4) {
     let force = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false;
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
-    writeLine('line4', l4);
+    writeLine('line4', l4, false);
 }
 
 function refreshDisplay() {
@@ -101,13 +101,11 @@ function refreshDisplay() {
 
 function toggleHandset() {
     isOffHook = !isOffHook;
-    const flipper = document.getElementById('handset-flipper');
+    const f = document.getElementById('handset-flipper');
     if (isOffHook) {
-        flipper.classList.add('up');
-        isLanguageSelected = false; playTrack(100); 
+        f.classList.add('up'); isLanguageSelected = false; playTrack(100); 
     } else {
-        flipper.classList.remove('up');
-        updateLCD("LEVANTE", "ON HOOK", " ");
+        f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -119,6 +117,7 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
+    // RESET TO MENU
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
@@ -140,12 +139,13 @@ function press(key) {
     } else {
         inputString += key;
         updateLCD("DIALING...", inputString, " ");
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
+        // Command check: If 4,5,6 is pressed alone, wait 1s. If music is NOT playing, 5 still works for random from menu.
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
+                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
@@ -171,8 +171,7 @@ function playTrack(num) {
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file;
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
