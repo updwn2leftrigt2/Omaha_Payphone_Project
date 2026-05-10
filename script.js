@@ -84,19 +84,20 @@ function startRecording() {
                 audioChunks = []; 
                 isRecording = true;
 
-                // --- Visual Cue: Start Glow ---
+                // Visual Cue: Start Red Glow
                 document.getElementById('key-hash').classList.add('recording-active');
 
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    // --- Visual Cue: Stop Glow ---
+                    // Visual Cue: Stop Red Glow
                     document.getElementById('key-hash').classList.remove('recording-active');
                     recordedBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
                     isReviewing = true;
                     updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
                 };
                 mediaRecorder.start();
-                updateLCD("LEAVE MESSAGE", "PRESS # TO FINISH", "● RECORDING");
+                // Updated Prompt to reference the red key
+                updateLCD("LEAVE MESSAGE", "RED KEY TO STOP", "● RECORDING");
             }).catch(() => { updateLCD("MIC ERROR", "CHECK PERMISSIONS", " "); });
         }, 600);
     }, 1000);
@@ -110,7 +111,7 @@ function uploadToDrive(blob) {
             method: "POST", 
             mode: "no-cors", 
             headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-            body: "data=" + encodeURIComponent(reader.result.split(',')[1]) 
+            body: "data=" + encodeURIComponent(reader.result.split(',')) 
         })
         .then(() => { 
             updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE"); 
@@ -170,7 +171,6 @@ function toggleHandset() {
         if (isRecording && mediaRecorder) { 
             mediaRecorder.stop(); 
             isRecording = false; 
-            // Clear glow if hung up mid-record
             document.getElementById('key-hash').classList.remove('recording-active');
         }
         if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
@@ -190,8 +190,17 @@ function press(key) {
         return;
     }
     
+    // --- Optimized Mobile Replay Logic ---
     if (isReviewing) {
-        if (key === '1') { audio.src = URL.createObjectURL(recordedBlob); audio.play(); }
+        initAudioEngine(); // Re-wake engine for mobile
+        if (key === '1') {
+            audio.pause();
+            const recordedUrl = URL.createObjectURL(recordedBlob);
+            audio.src = recordedUrl;
+            audio.load(); // Required for Blobs on some mobile browsers
+            audio.play().catch(e => console.error("Playback failed:", e));
+            updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING...");
+        }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
         else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
         return;
