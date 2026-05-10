@@ -4,6 +4,7 @@ audio.crossOrigin = "anonymous";
 clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
+
 const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
 
 function initAudioEngine() {
@@ -30,15 +31,6 @@ function triggerRecoil(type = 'heavy') {
     const unit = document.getElementById('main-unit');
     if (unit) { unit.classList.remove('recoil', 'micro-recoil'); void unit.offsetWidth; unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil'); }
 }
-
-// --- IOS ZOOM KILLER ---
-let lastTap = 0;
-document.addEventListener('touchend', function (e) {
-    let currentTime = new Date().getTime();
-    let tapLength = currentTime - lastTap;
-    if (tapLength < 300 && tapLength > 0) { e.preventDefault(); }
-    lastTap = currentTime;
-}, false);
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 2, volIndex = 1, cmdTimer = null;
@@ -70,12 +62,3 @@ function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % vol
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43); playTrack(r); }
 function playTrack(num) { if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; } currentTrackNum = num; audio.pause(); if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); } clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400); }
-
-// --- EVENT LISTENERS ---
-document.getElementById('receiver-hit-area').addEventListener('touchend', (e) => { e.preventDefault(); toggleHandset(); });
-document.getElementById('vb').addEventListener('touchend', (e) => { e.preventDefault(); cycleVolume(); });
-['1','2','3','4','5','6','7','8','9','0','s','h'].forEach(k => {
-    const id = (k === 's') ? 'ks' : (k === 'h') ? 'kh' : 'k' + k;
-    const keyVal = (k === 's') ? '*' : (k === 'h') ? '#' : k;
-    document.getElementById(id).addEventListener('touchend', (e) => { e.preventDefault(); press(keyVal); });
-});
