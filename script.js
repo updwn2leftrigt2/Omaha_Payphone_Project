@@ -8,15 +8,11 @@ clickAudio.crossOrigin = "anonymous";
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let isReviewing = false; // New state for the Review Menu
+let recordedBlob = null;
 let audioCtx, compressor, gainNode, source;
 
-// --- AUTHENTIC DTMF FREQUENCY PAIRS ---
-const dtmfFreqs = {
-    "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
-    "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
-    "7": [852, 1209], "8": [852, 1336], "9": [852, 1477],
-    "*": [941, 1209], "0": [941, 1336], "#": [941, 1477]
-};
+const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
 
 function initAudioEngine() {
     if (audioCtx) return;
@@ -32,7 +28,7 @@ function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
     const freqs = dtmfFreqs[digit]; if (!freqs) return;
     const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc1.frequency.value = freqs[0]; osc2.frequency.value = freqs[1];
+    osc1.frequency.value = freqs; osc2.frequency.value = freqs;
     g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc1.connect(g); osc2.connect(g); g.connect(audioCtx.destination);
     osc1.start(); osc2.start(); osc1.stop(audioCtx.currentTime + 0.2); osc2.stop(audioCtx.currentTime + 0.2);
@@ -43,44 +39,37 @@ function triggerRecoil(type = 'heavy') {
     if (unit) { unit.classList.remove('recoil', 'micro-recoil'); void unit.offsetWidth; unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil'); }
 }
 
-// --- RECORDING LOGIC ---
+// --- UPDATED RECORDING & REVIEW LOGIC ---
 function startRecording() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    updateLCD("ERROR", "MIC NOT SUPPORTED", " ");
-    return;
-  }
-  // Visual Prompt before recording starts
   updateLCD("VOICEMAIL SYSTEM", "STARTING RECORDER", "WAIT...");
-  
-  setTimeout(() => {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        isRecording = true;
-        mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
-        mediaRecorder.onstop = () => {
-          updateLCD("MESSAGE SAVED", "UPLOADING...", "THANK YOU");
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          uploadToDrive(audioBlob);
-        };
-        mediaRecorder.start();
-        updateLCD("LEAVE MESSAGE", "HANG UP TO SEND", "● RECORDING");
-      }).catch(err => {
-        updateLCD("MIC ERROR", "CHECK PERMISSIONS", " ");
-      });
-  }, 1000);
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isRecording = true;
+    mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      isReviewing = true;
+      updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
+    };
+    mediaRecorder.start();
+    updateLCD("LEAVE MESSAGE", "PRESS # TO FINISH", "● RECORDING");
+  }).catch(err => { updateLCD("MIC ERROR", "CHECK PERMISSIONS", " "); });
 }
 
 function uploadToDrive(blob) {
+  updateLCD("UPLOADING...", "PLEASE WAIT", "SENDING...");
   const reader = new FileReader();
   reader.readAsDataURL(blob);
   reader.onloadend = () => {
-    const base64data = reader.result.split(',')[1];
+    const base64data = reader.result.split(',');
     fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "data=" + encodeURIComponent(base64data)
+    }).then(() => {
+        updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE");
+        setTimeout(() => { if(isOffHook) playTrack(1); }, 2000);
     });
   };
 }
@@ -104,7 +93,14 @@ function writeLine(id, text, forceScroll = false) {
 
 function updateLCD(l2, l3, l4) { let f = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; writeLine('line2', l2, f); writeLine('line3', l3, f); writeLine('line4', l4); }
 
-function refreshDisplay() { const lang = ui[currentLang]; if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE"); else if (isDirectoryOpen) showDirectoryEntry(); else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr); else { const t = directory[currentTrackNum]; updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); } }
+function refreshDisplay() {
+    const lang = ui[currentLang];
+    if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
+    else if (isDirectoryOpen) showDirectoryEntry();
+    else if (isReviewing) updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
+    else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr);
+    else { const t = directory[currentTrackNum]; updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); }
+}
 
 function toggleHandset() {
     initAudioEngine();
@@ -114,10 +110,10 @@ function toggleHandset() {
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
         if(f) f.classList.add('up');
-        isLanguageSelected = false;
-        playTrack(100);
+        isLanguageSelected = false; isReviewing = false; playTrack(100);
     } else {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; }
+        isReviewing = false;
         if(f) f.classList.remove('up');
         triggerRecoil('heavy');
         updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " ");
@@ -134,8 +130,29 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
+
+    // --- REVIEW MENU LOGIC ---
+    if (isReviewing) {
+        if (key === '1') { // Listen to recording
+            const url = URL.createObjectURL(recordedBlob);
+            audio.src = url; audio.play();
+        } else if (key === '#') { // Send to Drive
+            isReviewing = false; uploadToDrive(recordedBlob);
+        } else if (key === '*') { // Discard
+            isReviewing = false; recordedBlob = null; playTrack(1);
+        }
+        return;
+    }
+
+    // --- RECORDING STOP LOGIC ---
+    if (isRecording) {
+        if (key === '#') {
+            isRecording = false;
+            mediaRecorder.stop();
+        }
+        return;
+    }
     
-    // NAVIGATION SHORTCUTS (Only if not typing a number)
     if (inputString === "") {
         if (key === '*') { isDirectoryOpen = false; playTrack(1); return; }
         if (key === '5') { playRandom(); return; }
@@ -151,12 +168,9 @@ function press(key) {
     }
 
     if (key === '#') {
-        if (inputString === "402") { 
-            audio.pause();
-            startRecording();
-        } else if (inputString === "00") {
-            isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry();
-        } else {
+        if (inputString === "402") { audio.pause(); startRecording(); }
+        else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); }
+        else {
             const d = parseInt(inputString);
             if (directory[d]) playTrack(d);
             else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); }
@@ -176,10 +190,6 @@ function playTrack(num) {
     if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); }
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
-    setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
-        audio.load();
-        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
-    }, 400);
+    setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
 }
 function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
