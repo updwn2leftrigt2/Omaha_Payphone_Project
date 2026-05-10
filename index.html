@@ -7,14 +7,9 @@
     <style>
         :root { 
             --payphone-coral: #FF7F50; 
-            --metallic-base: linear-gradient(145deg, #ffffff 0%, #b0b0b0 50%, #666 100%);
-            /* SHARED INDUSTRIAL TEXTURE */
-            --machined-texture: repeating-linear-gradient(
-                transparent, 
-                transparent 4px, 
-                rgba(0,0,0,0.08) 4px, 
-                rgba(0,0,0,0.08) 5px
-            );
+            /* High-contrast Chrome/Silver Gradient */
+            --metallic-base: linear-gradient(145deg, #ffffff 0%, #d0d0d0 40%, #a0a0a0 60%, #888 100%);
+            --machined-lines: repeating-linear-gradient(transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 5px);
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
@@ -38,21 +33,21 @@
             box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
 
-        /* MACHINED CRADLE HOUSING */
+        /* SILVER PLATE - Fixed color bleed */
         .cradle-housing {
-            background: var(--metallic-base); 
-            background-image: var(--machined-texture);
-            padding: 15px 10px; border-radius: 8px; border: 2px solid #555;
+            background: #e0e0e0; /* Solid base to prevent coral bleed */
+            background-image: var(--metallic-base);
+            position: relative; padding: 15px 10px; border-radius: 8px; border: 2px solid #555;
             margin: 0 auto 25px; width: 90%; max-width: 340px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 1px 3px white;
-            border-top: 2px solid rgba(255,255,255,0.8); /* Edge Highlight */
         }
+        /* Add lines as a separate overlay layer */
+        .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.5; }
 
-        .cradle-3d { position: relative; width: 100%; height: 85px; perspective: 1000px; cursor: pointer; }
-
+        .cradle-3d { position: relative; width: 100%; height: 85px; perspective: 1000px; cursor: pointer; z-index: 10; }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
-            background: var(--recessed-metal, linear-gradient(to bottom, #222 0%, #444 50%, #111 100%)); 
+            background: linear-gradient(to bottom, #111 0%, #333 50%, #111 100%); 
             clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
             box-shadow: inset 0 25px 50px rgba(0,0,0,0.9);
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 12px;
@@ -60,104 +55,68 @@
 
         .receiver-text { color: #ddd; font-weight: 950; font-size: 1.25rem; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255,255,255,0.4); animation: silver-glow 3s infinite; }
 
-        /* MACHINED 3D FLIPPER */
-        .flipper-container { 
-            position: absolute; left: 40%; top: 40px; width: 20%; height: 40px; 
-            transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-            transform-origin: top center; z-index: 10; 
-        }
-
-        .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic-base); border: 1px solid #333; }
-        .flipper-front  { 
-            transform: translateZ(10px); 
-            background-image: var(--machined-texture);
-            border-top: 2px solid rgba(255,255,255,0.8);
-        }
-        .flipper-back   { transform: rotateY(180deg) translateZ(10px); background: #666; }
-        .flipper-right, .flipper-left { width: 20px; transform: rotateY(90deg) translateZ(30px); left: 50%; margin-left: -10px; background: #888; }
-        .flipper-left { transform: rotateY(-90deg) translateZ(30px); }
-        .flipper-right::after, .flipper-left::after { content: ""; position: absolute; top: 5px; left: 5px; width: 6px; height: 6px; background: #333; border-radius: 50%; box-shadow: inset 1px 1px 2px black; }
-        .flipper-bottom { height: 20px; transform: rotateX(-90deg) translateZ(35px); background: #777; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        /* MACHINED FLIPPER */
+        .flipper-container { position: absolute; left: 40%; top: 40px; width: 20%; height: 40px; transform-style: preserve-3d; transition: transform 0.5s ease; transform-origin: top center; z-index: 15; }
+        .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #333; }
+        .flipper-front  { transform: translateZ(10px); }
+        .flipper-front::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity:0.6; }
+        .flipper-bottom { height: 20px; transform: rotateX(-90deg) translateZ(35px); background: #777; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
-        /* MACHINED BUTTONS */
         .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
         .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
+        /* BUTTONS - Fixed color bleed */
         button.key, .vol-btn { 
-            background: var(--metallic-base); 
-            background-image: var(--machined-texture);
-            color: #111; border: 1px solid #777; 
-            border-top: 2px solid rgba(255,255,255,0.8); /* Specular Highlight */
+            background: #dcdcdc; /* Prevents coral show-through */
+            background-image: var(--metallic-base);
+            position: relative; color: #111; border: 1px solid #777; 
+            width: 70px; height: 65px; font-size: 1.8rem; border-radius: 8px; 
             cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; 
             font-weight: 900; touch-action: manipulation; 
         }
-
-        button.key { width: 70px; height: 65px; font-size: 1.8rem; border-radius: 8px; }
+        button.key::after, .vol-btn::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity: 0.4; border-radius:8px; pointer-events:none; }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
 
         .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 10px; }
-        .vol-btn { 
-            width: 55px; height: 55px; border-radius: 8px; font-size: 0.65rem; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        }
+        .vol-btn { width: 55px; height: 55px; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         @keyframes silver-glow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 20px white; } }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(106%); } }
-        .pulsing-header { animation: pulse-header 3s infinite; }
-        @keyframes pulse-header { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .nav-row { font-size: 1.05rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
-        @media (max-width: 480px) {
-            .receiver-text { font-size: 0.95rem; letter-spacing: 1px; }
-            .cradle-base { padding-top: 15px; }
-        }
+        @media (max-width: 480px) { .receiver-text { font-size: 0.95rem; letter-spacing: 1px; } .cradle-base { padding-top: 15px; } }
     </style>
 </head>
 <body>
 <div class="payphone-container">
     <div class="lcd-display" id="lcd">
-        <div id="line1" class="line-container pulsing-header">OMAHA PAYPHONE PROJECT</div>
+        <div id="line1" class="line-container" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT RECEIVER</div>
         <div id="line3" class="line-container">LEVANTE EL RECEPTOR</div>
         <div id="line4" class="nav-row">&nbsp;</div>
     </div>
-
     <div class="cradle-housing">
         <div class="cradle-3d" onclick="toggleHandset()">
             <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
             <div id="handset-flipper" class="flipper-container">
                 <div class="flipper-face flipper-front"></div>
-                <div class="flipper-face flipper-back"></div>
-                <div class="flipper-face flipper-left"></div>
-                <div class="flipper-face flipper-right"></div>
                 <div class="flipper-face flipper-bottom"></div>
             </div>
         </div>
     </div>
-    
     <div class="controls-layout">
         <div></div>
         <div class="keypad">
-            <button class="key" onclick="press('1')">1</button>
-            <button class="key" onclick="press('2')">2</button>
-            <button class="key" onclick="press('3')">3</button>
-            <button class="key" onclick="press('4')">4</button>
-            <button class="key" onclick="press('5')">5</button>
-            <button class="key" onclick="press('6')">6</button>
-            <button class="key" onclick="press('7')">7</button>
-            <button class="key" onclick="press('8')">8</button>
-            <button class="key" onclick="press('9')">9</button>
-            <button class="key" onclick="press('*')">*</button>
-            <button class="key" onclick="press('0')">0</button>
-            <button class="key" onclick="press('#')">#</button>
+            <button class="key" onclick="press('1')">1</button><button class="key" onclick="press('2')">2</button><button class="key" onclick="press('3')">3</button>
+            <button class="key" onclick="press('4')">4</button><button class="key" onclick="press('5')">5</button><button class="key" onclick="press('6')">6</button>
+            <button class="key" onclick="press('7')">7</button><button class="key" onclick="press('8')">8</button><button class="key" onclick="press('9')">9</button>
+            <button class="key" onclick="press('*')">*</button><button class="key" onclick="press('0')">0</button><button class="key" onclick="press('#')">#</button>
         </div>
-        <div class="vol-container">
-            <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
-        </div>
+        <div class="vol-container"><button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button></div>
     </div>
 </div>
 <script src="script.js"></script>
