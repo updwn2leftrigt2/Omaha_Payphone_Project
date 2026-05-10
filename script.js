@@ -3,23 +3,31 @@ const clickAudio = new Audio();
 audio.crossOrigin = "anonymous";
 clickAudio.crossOrigin = "anonymous";
 
-// WEB AUDIO API LEVELER SETUP
-let audioCtx, compressor, source;
+// --- VOLUME BOOST LOGIC ---
+const trackGains = {
+    5: 2.5,  // Boost Amy Haddad (Track 5) by 2.5x
+    7: 1.0   // Example: Keep Track 7 at normal 1.0 (you can add others here)
+};
+
+let audioCtx, compressor, gainNode, source;
 
 function initAudioEngine() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     compressor = audioCtx.createDynamicsCompressor();
+    gainNode = audioCtx.createGain(); // This will handle our specific boosts
     
-    // Compressor Settings for Equalization
-    compressor.threshold.setValueAtTime(-24, audioCtx.currentTime); // Start leveling early
-    compressor.knee.setValueAtTime(30, audioCtx.currentTime);      // Smooth curve
-    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);     // Strong clamping for loud parts
-    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime); // Fast reaction
-    compressor.release.setValueAtTime(0.25, audioCtx.currentTime); // Natural release
+    compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
+    compressor.knee.setValueAtTime(30, audioCtx.currentTime);
+    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+    compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
 
     source = audioCtx.createMediaElementSource(audio);
-    source.connect(compressor);
+    
+    // Chain: Source -> Gain (for Amy) -> Compressor (for levels) -> Speakers
+    source.connect(gainNode);
+    gainNode.connect(compressor);
     compressor.connect(audioCtx.destination);
 }
 
@@ -80,7 +88,7 @@ function refreshDisplay() {
 }
 
 function toggleHandset() {
-    initAudioEngine(); // Starts leveler on first click
+    initAudioEngine();
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
@@ -112,11 +120,26 @@ function press(key) {
 
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43); playTrack(r); }
+
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
+    
+    // APPLY TRACK-SPECIFIC BOOST
+    if (gainNode) {
+        const boost = trackGains[num] || 1.0;
+        gainNode.gain.setTargetAtTime(boost, audioCtx.currentTime, 0.1);
+    }
+
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
 }
-function cycleVolume() { volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+
+function cycleVolume() { 
+    volIndex = (volIndex + 1) % volLevels.length; 
+    audio.volume = volLevels[volIndex]; 
+    clickAudio.volume = volLevels[volIndex]; 
+    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
+    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
+}
