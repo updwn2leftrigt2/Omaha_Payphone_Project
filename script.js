@@ -5,7 +5,7 @@ clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
 
-// --- DTMF TONE FREQUENCY MAP ---
+// --- ACCURATE DTMF FREQUENCY PAIRS (Low & High Groups) ---
 const dtmfFreqs = {
     "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
     "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
@@ -18,42 +18,52 @@ function initAudioEngine() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     compressor = audioCtx.createDynamicsCompressor();
     gainNode = audioCtx.createGain(); 
+    
     source = audioCtx.createMediaElementSource(audio);
     source.connect(gainNode);
     gainNode.connect(compressor);
     compressor.connect(audioCtx.destination);
+    
+    // Normalization Settings
     compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
+    compressor.knee.setValueAtTime(30, audioCtx.currentTime);
+    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
 }
 
-// --- DTMF TONE GENERATOR ---
+// --- ANALOG-STYLE DTMF GENERATOR ---
 function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
     const freqs = dtmfFreqs[digit];
     if (!freqs) return;
 
-    const osc1 = audioCtx.createOscillator();
-    const osc2 = audioCtx.createOscillator();
+    const lowOsc = audioCtx.createOscillator();
+    const highOsc = audioCtx.createOscillator();
     const toneGain = audioCtx.createGain();
 
-    osc1.type = 'sine'; osc2.type = 'sine';
-    osc1.frequency.setValueAtTime(freqs[0], audioCtx.currentTime);
-    osc2.frequency.setValueAtTime(freqs[1], audioCtx.currentTime);
+    lowOsc.type = 'sine';
+    highOsc.type = 'sine';
+    lowOsc.frequency.setValueAtTime(freqs[0], audioCtx.currentTime);
+    highOsc.frequency.setValueAtTime(freqs[1], audioCtx.currentTime);
 
-    toneGain.gain.setValueAtTime(0.1, audioCtx.currentTime); // Subtle volume
-    toneGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+    // Fade in/out quickly to prevent popping and sound "mechanical"
+    toneGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    toneGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.01); 
+    toneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
 
-    osc1.connect(toneGain); osc2.connect(toneGain);
+    lowOsc.connect(toneGain);
+    highOsc.connect(toneGain);
     toneGain.connect(audioCtx.destination);
 
-    osc1.start(); osc2.start();
-    osc1.stop(audioCtx.currentTime + 0.2);
-    osc2.stop(audioCtx.currentTime + 0.2);
+    lowOsc.start();
+    highOsc.start();
+    lowOsc.stop(audioCtx.currentTime + 0.2);
+    highOsc.stop(audioCtx.currentTime + 0.2);
 }
 
-// --- VISUAL HAPTIC TRIGGER ---
+// --- VISUAL RECOIL TRIGGER ---
 function triggerRecoil() {
     const unit = document.getElementById('main-unit');
-    if(unit) {
+    if (unit) {
         unit.classList.remove('recoil');
         void unit.offsetWidth; 
         unit.classList.add('recoil');
@@ -95,7 +105,7 @@ function refreshDisplay() {
 function toggleHandset() {
     initAudioEngine();
     isOffHook = !isOffHook;
-    if (!isOffHook) triggerRecoil();
+    if (!isOffHook) triggerRecoil(); 
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
     else { if(f) f.classList.remove('up'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
@@ -103,7 +113,7 @@ function toggleHandset() {
 
 function press(key) {
     if (!isOffHook) return;
-    playDialTone(key); // Play DTMF tone for every digit
+    playDialTone(key); 
     if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; }
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
@@ -137,4 +147,10 @@ function playTrack(num) {
     setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
 }
 
-function cycleVolume() { volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+function cycleVolume() { 
+    volIndex = (volIndex + 1) % volLevels.length; 
+    audio.volume = volLevels[volIndex]; 
+    clickAudio.volume = volLevels[volIndex]; 
+    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
+    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
+}
