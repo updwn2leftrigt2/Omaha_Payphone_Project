@@ -5,6 +5,14 @@ clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
 
+// --- DTMF TONE FREQUENCY MAP ---
+const dtmfFreqs = {
+    "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
+    "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
+    "7": [852, 1209], "8": [852, 1336], "9": [852, 1477],
+    "*": [941, 1209], "0": [941, 1336], "#": [941, 1477]
+};
+
 function initAudioEngine() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -17,12 +25,39 @@ function initAudioEngine() {
     compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
 }
 
+// --- DTMF TONE GENERATOR ---
+function playDialTone(digit) {
+    if (!audioCtx) initAudioEngine();
+    const freqs = dtmfFreqs[digit];
+    if (!freqs) return;
+
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const toneGain = audioCtx.createGain();
+
+    osc1.type = 'sine'; osc2.type = 'sine';
+    osc1.frequency.setValueAtTime(freqs[0], audioCtx.currentTime);
+    osc2.frequency.setValueAtTime(freqs[1], audioCtx.currentTime);
+
+    toneGain.gain.setValueAtTime(0.1, audioCtx.currentTime); // Subtle volume
+    toneGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+
+    osc1.connect(toneGain); osc2.connect(toneGain);
+    toneGain.connect(audioCtx.destination);
+
+    osc1.start(); osc2.start();
+    osc1.stop(audioCtx.currentTime + 0.2);
+    osc2.stop(audioCtx.currentTime + 0.2);
+}
+
 // --- VISUAL HAPTIC TRIGGER ---
 function triggerRecoil() {
     const unit = document.getElementById('main-unit');
-    unit.classList.remove('recoil');
-    void unit.offsetWidth; // Reset animation
-    unit.classList.add('recoil');
+    if(unit) {
+        unit.classList.remove('recoil');
+        void unit.offsetWidth; 
+        unit.classList.add('recoil');
+    }
 }
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
@@ -60,7 +95,7 @@ function refreshDisplay() {
 function toggleHandset() {
     initAudioEngine();
     isOffHook = !isOffHook;
-    if (!isOffHook) triggerRecoil(); // Physical jolt when hanging up
+    if (!isOffHook) triggerRecoil();
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
     else { if(f) f.classList.remove('up'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
@@ -68,6 +103,7 @@ function toggleHandset() {
 
 function press(key) {
     if (!isOffHook) return;
+    playDialTone(key); // Play DTMF tone for every digit
     if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; }
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
