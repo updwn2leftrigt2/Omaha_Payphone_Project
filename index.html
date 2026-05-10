@@ -27,13 +27,14 @@
         }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(105%); } }
 
-        .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
-            margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.05rem; font-weight: bold; overflow: hidden; position: relative;
-            display: flex; flex-direction: column; justify-content: space-around;
-            box-shadow: inset 0 0 30px black; border-radius: 4px;
-        }
+       .lcd-display { 
+    background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
+    margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+    font-size: 0.95rem; /* Reduced slightly from 1.05 to fit the new Nav line */
+    font-weight: bold; overflow: hidden; position: relative;
+    display: flex; flex-direction: column; justify-content: space-around;
+    box-shadow: inset 0 0 30px black; border-radius: 4px;
+}
         /* Subtler Shimmer */
         .lcd-display::before { 
             content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
