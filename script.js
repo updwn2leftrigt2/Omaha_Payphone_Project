@@ -103,9 +103,12 @@ function toggleHandset() {
     initAudioEngine(); isOffHook = !isOffHook;
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     const f = document.getElementById('handset-flipper');
-    if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; isReviewing = false; playTrack(100); }
-    else {
+    if (isOffHook) {
+        if(f) f.classList.add('up');
+        isLanguageSelected = false; isReviewing = false; playTrack(100);
+    } else {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; }
+        if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
         isReviewing = false; if(f) f.classList.remove('up'); triggerRecoil('heavy');
         updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
@@ -120,15 +123,17 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
+
     if (isReviewing) {
         if (key === '1') { audio.src = URL.createObjectURL(recordedBlob); audio.play(); }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
         else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
         return;
     }
+
     if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
 
-    // Clear navigation timer if user keeps typing
+    // Clear any pending shortcut if a second digit is pressed
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
     if (isDirectoryOpen) {
@@ -154,8 +159,8 @@ function press(key) {
         inputString += key;
         updateLCD("DIALING...", inputString, "PRESS # TO CALL");
 
-        // NAVIGATION DELAY: Wait 1s to see if user dials more digits or wants to skip
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
+        // Short-cut logic for 4, 5, 6
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
