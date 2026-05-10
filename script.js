@@ -14,9 +14,9 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
+// UI/Directory same as before...
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nv: "4<PREV|5:RND|6>NEXT", dn: "2^UP/8vDN/#PLAY", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nv: "4<ANT|5:AZAR|6>SIG", dn: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
@@ -74,7 +74,7 @@ const directory = {
 
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
-    if (id === 'line1') return; // Stationary pulsing header
+    if (id === 'line1') return;
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
@@ -170,8 +170,7 @@ function playTrack(num) {
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file;
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
