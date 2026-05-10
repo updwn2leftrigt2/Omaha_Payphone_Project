@@ -14,26 +14,11 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { 
-        dial: "DIAL ARTIST #", 
-        rnd: "DIAL 5 FOR RANDOM", 
-        dir: "DIAL 00# FOR DIRECTORY", 
-        nav: "4<PREV | 5:RND | 6>NEXT", 
-        dNav: "2^UP/8vDN/#PLAY", 
-        inv: "INVALID" 
-    },
-    es: { 
-        dial: "MARQUE NUMERO", 
-        rnd: "MARQUE 5 AL AZAR", 
-        dir: "00# PARA DIRECTORIO", 
-        nav: "4<ANT | 5:AZAR | 6>SIG", 
-        dNav: "2^SUB/8vBAJ/#TOCAR", 
-        inv: "INVALIDO" 
-    }
+    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nv: "4<PREV|5:RND|6>NEXT", dn: "2^UP/8vDN/#PLAY", inv: "INVALID" },
+    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nv: "4<ANT|5:AZAR|6>SIG", dn: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
 };
 
 const directory = {
@@ -89,7 +74,8 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') return;
-    if (forceScroll) {
+    if (id === 'line4') { el.innerHTML = `<div>${text}</div>`; return; }
+    if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
         el.innerHTML = `<div>${text}</div>`;
@@ -97,22 +83,20 @@ function writeLine(id, text, forceScroll = false) {
 }
 
 function updateLCD(l2, l3, l4) {
-    // Scroll only if music is playing AND name is long (> 20)
-    // Main Menu (Track 1) is strictly stationary
     let force = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false;
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
-    writeLine('line4', l4, false);
+    writeLine('line4', l4);
 }
 
 function refreshDisplay() {
     const lang = ui[currentLang];
     if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
     else if (isDirectoryOpen) showDirectoryEntry();
-    else if (currentTrackNum === 1) updateLCD(lang.dial, lang.rnd, lang.dir);
+    else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr);
     else {
         const t = directory[currentTrackNum];
-        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav);
+        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nv);
     }
 }
 
@@ -120,11 +104,9 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const btn = document.getElementById('handset-toggle');
     if (isOffHook) {
-        btn.innerText = "HANG UP / COLGAR"; btn.classList.add('off-hook');
-        isLanguageSelected = false; playTrack(100); 
+        btn.classList.add('off-hook'); isLanguageSelected = false; playTrack(100); 
     } else {
-        btn.innerText = "LIFT HANDSET / LEVANTE"; btn.classList.remove('off-hook');
-        updateLCD("LEVANTE", "ON HOOK", " ");
+        btn.classList.remove('off-hook'); updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -173,7 +155,7 @@ function press(key) {
 
 function showDirectoryEntry() {
     const e = directory[directoryIndex];
-    updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dNav);
+    updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn);
 }
 
 function playRandom() {
@@ -184,12 +166,11 @@ function playRandom() {
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
-    clickAudio.src = "https://archive.org";
+    clickAudio.src = "https://archive.org0099.mp3";
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        let file = num.toString().padStart(4, '0') + ".mp3";
-        audio.src = baseUrl + file; // FULL DIRECT URL
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
