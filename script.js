@@ -4,7 +4,6 @@ audio.crossOrigin = "anonymous";
 clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
-
 const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
 
 function initAudioEngine() {
@@ -57,35 +56,18 @@ function toggleHandset() {
     initAudioEngine();
     isOffHook = !isOffHook;
     
-    // Play the mechanical click audio on both lift and hang-up
+    // Play snap sound immediately
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(() => {});
 
     const f = document.getElementById('handset-flipper');
-    if (isOffHook) { 
-        if(f) f.classList.add('up'); 
-        isLanguageSelected = false; 
-        playTrack(100); 
-    } else { 
-        triggerRecoil('heavy'); // The visual jolt
-        if(f) f.classList.remove('up'); 
-        updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); 
-        audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; 
-    }
+    if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
+    else { if(f) f.classList.remove('up'); triggerRecoil('heavy'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
 }
 
 function press(key) { if (!isOffHook) return; triggerRecoil('micro'); playDialTone(key); if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; } if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; } if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; } if (isDirectoryOpen) { if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); } else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); } else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; } return; } if (key === '#') { if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); } else { const d = parseInt(inputString); if (directory[d]) playTrack(d); else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); } } inputString = ""; } else { inputString += key; updateLCD("DIALING...", inputString, " "); if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49); else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2); inputString = ""; } cmdTimer = null; }, 1000); } } }
 
 function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
-
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43); playTrack(r); }
-
-function playTrack(num) { 
-    if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; } 
-    currentTrackNum = num; audio.pause(); 
-    if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); } 
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); 
-    refreshDisplay(); 
-    setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400); 
-}
+function playTrack(num) { if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; } currentTrackNum = num; audio.pause(); if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); } clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400); }
