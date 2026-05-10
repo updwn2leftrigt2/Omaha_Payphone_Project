@@ -1,5 +1,5 @@
 // --- CONFIGURATION ---
-// PASTE YOUR NEW GOOGLE SCRIPT URL BELOW
+// IMPORTANT: Update this URL with your latest Google Apps Script deployment link
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylSiBR4aZnANjlSDJLneav5rXZJlFzofnaRSUwhY-oA84bvwzZPUR24CREMqXJXUAOaw/exec";
 
 const audio = new Audio();
@@ -90,7 +90,7 @@ function startRecording() {
                 audioChunks = []; 
                 isRecording = true;
 
-                // Start the visual cue (Glow defined in CSS)
+                // Visual Cue: Start Red Glow on #
                 const hashKey = document.getElementById('key-hash');
                 if(hashKey) hashKey.classList.add('recording-active');
 
@@ -113,7 +113,6 @@ function uploadToDrive(blob) {
     const reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = () => {
-        // We send the full DataURL; your new Apps Script logic handles the split(",")
         fetch(GOOGLE_SCRIPT_URL, { 
             method: "POST", 
             mode: "no-cors", 
@@ -169,10 +168,12 @@ function refreshDisplay() {
 // --- 7. CORE INTERACTION ---
 function toggleHandset() {
     initAudioEngine(); isOffHook = !isOffHook;
+    const unit = document.getElementById('main-unit');
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
         if(f) f.classList.add('up');
+        if(unit) unit.classList.add('handset-up'); // Added for shimmer control
         isLanguageSelected = false; isReviewing = false; playTrack(100);
     } else {
         if (isRecording && mediaRecorder) { 
@@ -182,7 +183,9 @@ function toggleHandset() {
             if(hashKey) hashKey.classList.remove('recording-active');
         }
         if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
-        isReviewing = false; if(f) f.classList.remove('up'); triggerRecoil('heavy');
+        isReviewing = false; if(f) f.classList.remove('up'); 
+        if(unit) unit.classList.remove('handset-up'); // Restarts shimmer
+        triggerRecoil('heavy');
         updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
@@ -200,12 +203,12 @@ function press(key) {
     
     // --- Optimized Mobile Replay ---
     if (isReviewing) {
-        initAudioEngine(); // Wake context for replay
+        initAudioEngine(); 
         if (key === '1') {
             audio.pause();
             const recordedUrl = URL.createObjectURL(recordedBlob);
             audio.src = recordedUrl;
-            audio.load(); // Poke the audio element
+            audio.load(); 
             audio.play().catch(e => console.error("Playback failed:", e));
             updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING...");
         }
