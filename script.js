@@ -1,3 +1,4 @@
+// --- CONFIGURATION ---
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvftBSqVh2B4OsfG6A-Z0NdfAQHSfzjzoU8ERxm5y2zkRm3UZx5N9AThrcLilGLFwfCw/exec";
 const audio = new Audio();
 const clickAudio = new Audio();
@@ -16,7 +17,6 @@ function initAudioEngine() {
         gainNode = audioCtx.createGain(); 
         source = audioCtx.createMediaElementSource(audio);
         source.connect(gainNode); gainNode.connect(compressor); compressor.connect(audioCtx.destination);
-        compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
     }
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
@@ -26,8 +26,7 @@ function playDialTone(digit) {
     const freq = dtmfFreqs[digit]; if (!freq) return;
     const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
     osc.frequency.value = freq;
-    g.gain.setValueAtTime(0, audioCtx.currentTime); 
-    g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); 
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime); 
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc.connect(g); g.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
@@ -52,7 +51,7 @@ function triggerRecoil() {
 }
 
 function startRecording() {
-  updateLCD("VOICEMAIL", "WAIT FOR BEEP", "ESPERE EL TONO", " ");
+  updateLCD("VOICEMAIL", "WAIT BEEP", "ESPERE TONO", " ");
   setTimeout(() => {
       const beep = audioCtx.createOscillator(), bg = audioCtx.createGain();
       beep.frequency.setValueAtTime(1000, audioCtx.currentTime);
@@ -70,8 +69,8 @@ function startRecording() {
               refreshDisplay();
             };
             mediaRecorder.start(); 
-            updateLCD("RECORDING", "SPEAK NOW", "POUND TO STOP", "● RECORDING");
-          }).catch(() => { updateLCD("MIC ERROR", "TRY AGAIN", "ERROR MIC", " "); });
+            updateLCD("RECORDING", "● RECORDING", "POUND STOP", "MARQUE #");
+          }).catch(() => { updateLCD("MIC ERROR", "ERROR MIC", " ", " "); });
       }, 600);
   }, 1000);
 }
@@ -81,7 +80,7 @@ function uploadToDrive(blob) {
   const reader = new FileReader(); reader.readAsDataURL(blob);
   reader.onloadend = () => {
     fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(reader.result.split(',')) })
-    .then(() => { updateLCD("SENT", "THANK YOU", "GRACIAS", " "); setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); });
+    .then(() => { updateLCD("SENT", "THANK YOU", "GRACIAS", "COMPLETE"); setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); });
   };
 }
 
@@ -90,38 +89,37 @@ let currentTrackNum = 1, directoryIndex = 2, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { d: "DIAL ARTIST #", r: "5: RANDOM", dr: "00#: DIRECTORY", vm: "402#: MESSAGE", nav: "4:< 5:RAND 6:>", dn: "2:^ 8:v #:PLAY", inv: "INVALID" },
-    es: { d: "MARQUE NUMERO", r: "5: AL AZAR", dr: "00#: DIRECTORIO", vm: "402#: MENSAJE", nav: "4:< AZAR 6:>", dn: "2:^ 8:v #:TOCAR", inv: "ERROR" }
+    en: { d: "DIAL ARTIST", r: "5: RANDOM", dr: "00: DIRECTORY", vm: "402: MESSAGE", nav: "4:< 5:RAND 6:>", dn: "2:^ 8:v #:PLAY", inv: "INVALID" },
+    es: { d: "MARQUE NUM", r: "5: AL AZAR", dr: "00: DIRECTORIO", vm: "402: MENSAJE", nav: "4:< AZAR 6:>", dn: "2:^ 8:v #:TOCAR", inv: "ERROR" }
 };
 
 const directory = { 1: { title: "DIAL TONE", artist: "SYSTEM" }, 2: { title: "Peacocks Patient", artist: "Alina Nguyen" }, 3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 4: { title: "Madeleine", artist: "Amelie Raoul" }, 5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 7: { title: "Whos Gonna Stand Up", artist: "BOLD NE (Neil Young)" }, 8: { title: "Alone.", artist: "Dos Mundos (Colton S.)" }, 9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 10: { title: "2+1", artist: "Dead Poets" }, 11: { title: "Childhood", artist: "Dereck Higgins" }, 12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J)" }, 13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 14: { title: "Love Surrounding", artist: "EDEM SOUL" }, 15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 16: { title: "May Queen", artist: "Hair Person" }, 17: { title: "Duniya", artist: "ID (ilahi & deLorenzo)" }, 18: { title: "Alignment", artist: "Jewel Rodgers & Serholt" }, 19: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 20: { title: "Racecar", artist: "Kevin Paradise" }, 21: { title: "My Father Apologizes", artist: "Kimberly Nguyen" }, 22: { title: "Gbandjo", artist: "Kusher Snazzy" }, 23: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 24: { title: "For You & Presence", artist: "Maritza N. Estrada" }, 25: { title: "Shimmering", artist: "Mesonjixx (Mary L)" }, 26: { title: "Amethyst", artist: "Melina" }, 27: { title: "Here We Are. Still.", artist: "Meredith Ann Fuller" }, 28: { title: "An Act of Naming", artist: "Natasha Kessler" }, 29: { title: "Critic", artist: "Ol Mo (Robin S Kessler)" }, 31: { title: "FOLK SONG 3", artist: "Otis Twelve (ft Dereck)" }, 32: { title: "Snow Song", artist: "Rayni Wekluk" }, 33: { title: "Unconditional Blues", artist: "Renzellous Brown" }, 34: { title: "Edgy Refugee", artist: "Rosine Selemani" }, 35: { title: "Slumber", artist: "Sam Brock" }, 36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe" }, 37: { title: "Folks", artist: "Sgt. Leisure" }, 38: { title: "FU Babies", artist: "Stacey Barelos" }, 39: { title: "To the Broken Few", artist: "Stolen Wolves (Inno)" }, 40: { title: "My Journey", artist: "Sulekha Ali" }, 41: { title: "A la", artist: "Sanchez/Bartolomei/Boyd" }, 42: { title: "THEY BITE", artist: "SWAMPD" }, 44: { title: "Hold On", artist: "The Mynabirds (Laura)" }, 45: { title: "Agnostic Maps", artist: "Todd Robinson" }, 46: { title: "Against Distance", artist: "Trey Moody" }, 47: { title: "All Nighter", artist: "UN-T.I.L." }, 48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 49: { title: "The Ocelot", artist: "Winston F. Schneider" } };
 
 // --- FULL WRAPPER LOGIC ---
 function updateLCD(l1, l2, l3, l4) {
-    const limit = 11; // Character limit for 12pt pixel font
-    let line2 = l2;
-    let line3 = l3;
+    const limit = 11;
+    let line2 = l2 || " ";
+    let line3 = l3 || " ";
 
-    // If Line 2 is too long, push the overflow into Line 3
-    if (l2.length > limit) {
-        let lastSpace = l2.lastIndexOf(' ', limit);
+    if (line2.length > limit) {
+        let lastSpace = line2.lastIndexOf(' ', limit);
         let splitIdx = lastSpace > 0 ? lastSpace : limit;
-        line2 = l2.substring(0, splitIdx).trim();
-        line3 = l2.substring(splitIdx).trim();
+        line3 = line2.substring(splitIdx).trim();
+        line2 = line2.substring(0, splitIdx).trim();
     }
 
-    document.getElementById('line1').innerText = l1;
+    document.getElementById('line1').innerText = l1 || " ";
     document.getElementById('line2').innerText = line2;
     document.getElementById('line3').innerText = line3;
-    document.getElementById('line4').innerText = l4;
+    document.getElementById('line4').innerText = l4 || " ";
 }
 
 function refreshDisplay() {
     const lang = ui[currentLang];
     if (!isOffHook) {
-        updateLCD(" ", "LIFT RECEIVER", "LEVANTE EL", "RECEPTOR");
+        updateLCD("LIFT RECEIVER", "LEVANTE EL", "RECEPTOR", " ");
     } else if (!isLanguageSelected) {
-        updateLCD("LANGUAGE", "1: ENGLISH", "2: ESPANOL", " ");
+        updateLCD("LANGUAGE", "1: ENGLISH", "2: ESPANOL", "IDIOMA");
     } else if (isDirectoryOpen) {
         const e = directory[directoryIndex];
         updateLCD("TRACK " + directoryIndex.toString().padStart(2,'0'), e.artist, e.title, lang.dn);
@@ -224,3 +222,6 @@ function cycleVolume() {
     updateLCD("VOLUME", "LEVEL", "I".repeat(volIndex + 1), " "); 
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
 }
+
+// Initial set to ensure English/Spanish is on screen immediately
+refreshDisplay();
