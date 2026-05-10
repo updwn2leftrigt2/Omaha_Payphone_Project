@@ -54,7 +54,11 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
-    else { if(f) f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
+    else { 
+        if(f) f.classList.remove('up'); 
+        updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); 
+        audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; 
+    }
 }
 
 function press(key) {
@@ -86,7 +90,7 @@ function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } wh
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
-    if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7 : 1.0, audioCtx.currentTime); }
+    if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); }
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
