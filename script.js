@@ -17,6 +17,16 @@ function initAudioEngine() {
     compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
 }
 
+// --- HAPTIC FEEDBACK ENGINE ---
+function hapticFeedback(type = 'click') {
+    if (!("vibrate" in navigator)) return;
+    if (type === 'click') {
+        navigator.vibrate(15); // Short sharp click for keys
+    } else if (type === 'heavy') {
+        navigator.vibrate(35); // Slightly heavier for the receiver hook
+    }
+}
+
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 2, volIndex = 1, cmdTimer = null;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
@@ -50,19 +60,17 @@ function refreshDisplay() {
 }
 
 function toggleHandset() {
+    hapticFeedback('heavy'); // Vibration for cradle hook
     initAudioEngine();
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
-    else { 
-        if(f) f.classList.remove('up'); 
-        updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); 
-        audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; 
-    }
+    else { if(f) f.classList.remove('up'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
 }
 
 function press(key) {
     if (!isOffHook) return;
+    hapticFeedback('click'); // Vibration for every key press
     if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; }
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
@@ -96,4 +104,11 @@ function playTrack(num) {
     setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
 }
 
-function cycleVolume() { volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+function cycleVolume() { 
+    hapticFeedback('click'); 
+    volIndex = (volIndex + 1) % volLevels.length; 
+    audio.volume = volLevels[volIndex]; 
+    clickAudio.volume = volLevels[volIndex]; 
+    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
+    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
+}
