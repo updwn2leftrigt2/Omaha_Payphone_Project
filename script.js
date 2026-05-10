@@ -26,9 +26,7 @@ function playDialTone(digit) {
     const freq = dtmfFreqs[digit]; if (!freq) return;
     const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
     osc.frequency.value = freq;
-    g.gain.setValueAtTime(0, audioCtx.currentTime); 
-    g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); 
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc.connect(g); g.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
@@ -61,7 +59,7 @@ function triggerRecoil() {
 }
 
 function startRecording() {
-  updateLCD("VOICEMAIL", "WAIT BEEP", " ");
+  updateLCD("VOICEMAIL", "WAIT FOR BEEP", "ESPERE EL TONO", " ");
   setTimeout(() => {
       playVoicemailBeep();
       setTimeout(() => {
@@ -70,21 +68,21 @@ function startRecording() {
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
               recordedBlob = new Blob(audioChunks, { type: 'audio/webm' }); isReviewing = true;
-              updateLCD("1:LISTEN", "#:SEND", "REVIEW");
+              updateLCD("REVIEW", "1:LISTEN", "#:SEND", "*:DISC");
             };
             mediaRecorder.start(); 
-            updateLCD("RECORDING", "POUND STOP", "● REC");
-          }).catch(() => { updateLCD("MIC ERROR", "RETRY", " "); });
+            updateLCD("RECORDING", "● RECORDING", "PRESS # STOP", " ");
+          }).catch(() => { updateLCD("MIC ERROR", "ERROR MIC", " ", " "); });
       }, 600);
   }, 1000);
 }
 
 function uploadToDrive(blob) {
-  updateLCD("SENDING", "PLEASE WAIT", " ");
+  updateLCD("SENDING...", "PLEASE WAIT", "ENVIANDO...", " ");
   const reader = new FileReader(); reader.readAsDataURL(blob);
   reader.onloadend = () => {
     fetch(GOOGLE_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(reader.result.split(',')) })
-    .then(() => { updateLCD("SENT", "THANK YOU", " "); setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); });
+    .then(() => { updateLCD("SENT", "THANK YOU", "GRACIAS", " "); setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); });
   };
 }
 
@@ -93,25 +91,46 @@ let currentTrackNum = 1, directoryIndex = 2, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { d: "DIAL #", r: "5:RANDOM", dual: "00# | 402#", nav: "4:< 5:R 6:>", dn: "2:^ 8:v #:GO", inv: "INVALID" },
-    es: { d: "MARQUE #", r: "5:AZAR", dual: "00# | 402#", nav: "4:< 5:A 6:>", dn: "2:^ 8:v #:SI", inv: "ERROR" }
+    en: { d: "DIAL ARTIST #", r: "5: RANDOM", dr: "00#: DIR", vm: "402#: MSJ", nav: "4:< 5:RAND 6:>", dn: "2:^ 8:v #:GO", inv: "INVALID" },
+    es: { d: "MARQUE NUMERO", r: "5: AZAR", dr: "00#: DIR", vm: "402#: MSJ", nav: "4:< AZAR 6:>", dn: "2:^ 8:v #:SI", inv: "ERROR" }
 };
 
-const directory = { 1: { title: "DIAL TONE", artist: "SYSTEM" }, 2: { title: "Peacocks", artist: "Alina Nguyen" }, 3: { title: "Moon Tune", artist: "Aly Peeler" }, 4: { title: "Madeleine", artist: "Amelie Raoul" }, 5: { title: "Cup Bottom", artist: "Amy Haddad" }, 6: { title: "Drink Tea", artist: "Angelica P" }, 7: { title: "Stand Up", artist: "BOLD NE" }, 8: { title: "Alone.", artist: "Dos Mundos" }, 9: { title: "The Peace", artist: "Conny Franko" }, 10: { title: "2+1", artist: "Dead Poets" }, 11: { title: "Childhood", artist: "Dereck H" }, 12: { title: "Tea Now", artist: "Dex Arbor" }, 13: { title: "Ocean", artist: "D Shaposh" }, 14: { title: "Surround", artist: "EDEM SOUL" }, 15: { title: "Soil Son", artist: "Gerard P" }, 16: { title: "May Queen", artist: "Hair Person" }, 17: { title: "Duniya", artist: "ID" }, 18: { title: "Alignment", artist: "Jewel R" }, 19: { title: "Refugee", artist: "Kam Bany" }, 20: { title: "Racecar", artist: "K Paradise" }, 21: { title: "My Father", artist: "Kimberly N" }, 22: { title: "Gbandjo", artist: "Kusher S" }, 23: { title: "Pidgin", artist: "Lindsey B" }, 24: { title: "For You", artist: "Maritza E" }, 25: { title: "Shimmer", artist: "Mesonjixx" }, 26: { title: "Amethyst", artist: "Melina" }, 27: { title: "Still Here", artist: "Meredith F" }, 28: { title: "Naming", artist: "Natasha K" }, 29: { title: "Critic", artist: "Ol Mo" }, 31: { title: "FOLK SONG", artist: "Otis Twelve" }, 32: { title: "Snow Song", artist: "Rayni W" }, 33: { title: "Blues", artist: "Renzellous" }, 34: { title: "Refugee", artist: "Rosine S" }, 35: { title: "Slumber", artist: "Sam Brock" }, 36: { title: "Bright Star", artist: "Sarah Rowe" }, 37: { title: "Folks", artist: "Sgt Leisure" }, 38: { title: "FU Babies", artist: "Stacey B" }, 39: { title: "Broken Few", artist: "Stolen W" }, 40: { title: "Journey", artist: "Sulekha Ali" }, 41: { title: "A la", artist: "Sanchez/B" }, 42: { title: "BITE", artist: "SWAMPD" }, 44: { title: "Hold On", artist: "Mynabirds" }, 45: { title: "Maps", artist: "Todd R" }, 46: { title: "Distance", artist: "Trey Moody" }, 47: { title: "Nighter", artist: "UN-T.I.L." }, 48: { title: "Counts", artist: "Victoria B" }, 49: { title: "Ocelot", artist: "Winston S" } };
+const directory = { 1: { title: "DIAL TONE", artist: "SYSTEM" }, 2: { title: "Peacocks Patient", artist: "Alina Nguyen" }, 3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 4: { title: "Madeleine", artist: "Amelie Raoul" }, 5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 7: { title: "Whos Gonna Stand Up", artist: "BOLD NE (Neil Young)" }, 8: { title: "Alone.", artist: "Dos Mundos (Colton S.)" }, 9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 10: { title: "2+1", artist: "Dead Poets" }, 11: { title: "Childhood", artist: "Dereck Higgins" }, 12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J)" }, 13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 14: { title: "Love Surrounding", artist: "EDEM SOUL" }, 15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 16: { title: "May Queen", artist: "Hair Person" }, 17: { title: "Duniya", artist: "ID (ilahi & deLorenzo)" }, 18: { title: "Alignment", artist: "Jewel Rodgers & Serholt" }, 19: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 20: { title: "Racecar", artist: "Kevin Paradise" }, 21: { title: "My Father Apologizes", artist: "Kimberly Nguyen" }, 22: { title: "Gbandjo", artist: "Kusher Snazzy" }, 23: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 24: { title: "For You & Presence", artist: "Maritza N. Estrada" }, 25: { title: "Shimmering", artist: "Mesonjixx (Mary L)" }, 26: { title: "Amethyst", artist: "Melina" }, 27: { title: "Here We Are. Still.", artist: "Meredith Ann Fuller" }, 28: { title: "An Act of Naming", artist: "Natasha Kessler" }, 29: { title: "Critic", artist: "Ol Mo (Robin S Kessler)" }, 31: { title: "FOLK SONG 3", artist: "Otis Twelve (ft Dereck)" }, 32: { title: "Snow Song", artist: "Rayni Wekluk" }, 33: { title: "Unconditional Blues", artist: "Renzellous Brown" }, 34: { title: "Edgy Refugee", artist: "Rosine Selemani" }, 35: { title: "Slumber", artist: "Sam Brock" }, 36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe" }, 37: { title: "Folks", artist: "Sgt. Leisure" }, 38: { title: "FU Babies", artist: "Stacey Barelos" }, 39: { title: "To the Broken Few", artist: "Stolen Wolves (Inno)" }, 40: { title: "My Journey", artist: "Sulekha Ali" }, 41: { title: "A la", artist: "Sanchez/Bartolomei/Boyd" }, 42: { title: "THEY BITE", artist: "SWAMPD" }, 44: { title: "Hold On", artist: "The Mynabirds (Laura)" }, 45: { title: "Agnostic Maps", artist: "Todd Robinson" }, 46: { title: "Against Distance", artist: "Trey Moody" }, 47: { title: "All Nighter", artist: "UN-T.I.L." }, 48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 49: { title: "The Ocelot", artist: "Winston F. Schneider" } };
 
-function updateLCD(l2, l3, l4) { 
-    document.getElementById('line2').innerText = l2;
-    document.getElementById('line3').innerText = l3;
+// --- SMART TEXT WRAPPER ---
+function updateLCD(l1, l2, l3, l4) { 
+    const limit = 12;
+    let line2 = l2;
+    let line3 = l3;
+
+    // If Artist name is too long, wrap it to Line 3
+    if (l2.length > limit) {
+        line2 = l2.substring(0, limit);
+        line3 = l2.substring(limit);
+    }
+
+    document.getElementById('line1').innerText = l1;
+    document.getElementById('line2').innerText = line2;
+    document.getElementById('line3').innerText = line3;
     document.getElementById('line4').innerText = l4;
 }
 
 function refreshDisplay() {
     const lang = ui[currentLang];
-    if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "LANGUAGE");
-    else if (isDirectoryOpen) { const e = directory[directoryIndex]; updateLCD(e.artist, e.title, lang.dn); }
-    else if (isReviewing) updateLCD("1:LISTEN", "#:SEND", "REVIEW");
-    else if (currentTrackNum === 1 && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
-    else if (currentTrackNum > 1 && inputString === "") { const t = directory[currentTrackNum]; updateLCD(t.artist, t.title, lang.nav); }
+    if (!isLanguageSelected) updateLCD("LANGUAGE", "1: ENGLISH", "2: ESPANOL", " ");
+    else if (isDirectoryOpen) { 
+        const e = directory[directoryIndex]; 
+        // Always show the Entry # on Line 1 in Directory Mode
+        updateLCD("#" + directoryIndex.toString().padStart(2,'0'), e.artist, e.title, lang.dn); 
+    }
+    else if (isReviewing) updateLCD("REVIEW", "1:LISTEN", "#:SEND", "*:DISC");
+    else if (currentTrackNum === 1 && inputString === "") {
+        updateLCD(lang.d, lang.dr, lang.vm, lang.r);
+    }
+    else if (currentTrackNum > 1 && inputString === "") { 
+        const t = directory[currentTrackNum]; 
+        updateLCD("#" + currentTrackNum.toString().padStart(2,'0'), t.artist, t.title, lang.nav); 
+    }
 }
 
 function toggleHandset() {
@@ -125,7 +144,7 @@ function toggleHandset() {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; }
         if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
         isReviewing = false; if(f) f.classList.remove('up'); triggerRecoil();
-        updateLCD("LIFT", "RECEIVER", " ");
+        updateLCD("LIFT", "RECEIVER", "RECEPTOR", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -161,14 +180,14 @@ function press(key) {
         else {
             const d = parseInt(inputString);
             if (directory[d]) playTrack(d);
-            else { updateLCD("INVALID", inputString, " "); setTimeout(refreshDisplay, 1500); }
+            else { updateLCD("ERROR", inputString, "INVALID", " "); setTimeout(refreshDisplay, 1500); }
         }
         inputString = "";
     } else if (key === '*') {
         inputString = ""; playTrack(1);
     } else {
         inputString += key;
-        updateLCD("DIALING", inputString, "POUND CALL");
+        updateLCD("DIALING", inputString, "POUND CALL", " ");
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
@@ -185,7 +204,7 @@ function press(key) {
 function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43); playTrack(r); }
 
 function playTrack(num) {
-    if (num === 30 || num === 43) { updateLCD("ERROR", "SOON", " "); return; }
+    if (num === 30 || num === 43) { updateLCD("ERROR", "SOON", "PRONTO", " "); return; }
     currentTrackNum = num; audio.pause();
     if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime);
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
@@ -200,6 +219,6 @@ function playTrack(num) {
 function cycleVolume() { 
     volIndex = (volIndex + 1) % volLevels.length; 
     audio.volume = volLevels[volIndex]; playVolumeChirp(volIndex); 
-    updateLCD("VOLUME", "LEVEL", "I".repeat(volIndex + 1)); 
+    updateLCD("VOLUME", "LEVEL", "I".repeat(volIndex + 1), " "); 
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
 }
