@@ -8,7 +8,6 @@ clickAudio.crossOrigin = "anonymous";
 let mediaRecorder, audioChunks = [], isRecording = false, isReviewing = false, recordedBlob = null;
 let audioCtx, compressor, gainNode, source, cmdTimer = null;
 
-// DTMF Frequency Map for Dialing Tones
 const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
 // --- 1. MOBILE AUDIO ENGINE WAKE-UP ---
@@ -21,7 +20,6 @@ function initAudioEngine() {
         source.connect(gainNode); gainNode.connect(compressor); compressor.connect(audioCtx.destination);
         compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
     }
-    // Crucial for iOS/Android: Engine starts "suspended" until a touch event resumes it
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
@@ -70,7 +68,7 @@ function triggerRecoil(type = 'heavy') {
     }
 }
 
-// --- 3. DISPLAY ENGINE (STABLE 4-LINE) ---
+// --- 3. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id); if (!el) return;
     if (id === 'line1' || id === 'line4') { el.innerText = text; return; }
@@ -93,8 +91,9 @@ function startRecording() {
             mediaRecorder = new MediaRecorder(stream); audioChunks = []; isRecording = true;
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
-              recordedBlob = new Blob(audioChunks, { type: 'audio/webm' }); isReviewing = true;
-              updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
+              recordedBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
+              isReviewing = true;
+              refreshDisplay();
             };
             mediaRecorder.start(); 
             updateLCD("LEAVE MESSAGE", "PRESS # TO FINISH", "● RECORDING");
@@ -132,7 +131,6 @@ function refreshDisplay() {
     else if (currentTrackNum === 1 && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
     else if (currentTrackNum > 1 && inputString === "") { 
         const t = directory[currentTrackNum]; 
-        // Restoration of Track Number display
         updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); 
     }
 }
@@ -163,13 +161,20 @@ function press(key) {
         return;
     }
 
-    // REVIEW MENU LOGIC (Ensuring Mobile Works)
+    // --- MOBILE-OPTIMIZED REVIEW LOGIC ---
     if (isReviewing) {
         if (key === '1') { 
             if (recordedBlob) {
+                // MOBILE TRICK: Use direct window URL and immediate play
                 audio.pause();
-                audio.src = URL.createObjectURL(recordedBlob);
-                audio.play(); 
+                const reviewUrl = window.URL.createObjectURL(recordedBlob);
+                audio.src = reviewUrl;
+                audio.load();
+                // Safari requires play() to happen inside the physical click event loop
+                audio.play().catch(e => {
+                    console.log("Playback retry...");
+                    audio.play(); 
+                });
             }
         }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
@@ -217,7 +222,6 @@ function press(key) {
 
 function showDirectoryEntry() { 
     const e = directory[directoryIndex]; 
-    // Directory displays track number
     updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); 
 }
 
@@ -226,7 +230,6 @@ function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } wh
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
-    // Amy Haddad 7.0 Volume Boost
     if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime);
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
@@ -240,7 +243,7 @@ function playTrack(num) {
 function cycleVolume() { 
     volIndex = (volIndex + 1) % volLevels.length; 
     audio.volume = volLevels[volIndex]; 
-    playVolumeChirp(volIndex); // Dynamic louder chirp
+    playVolumeChirp(volIndex);
     updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
 }
