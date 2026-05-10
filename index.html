@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
-    <!-- YOUR GOOGLE FONT LINKS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
         :root { 
@@ -55,26 +54,26 @@
         }
         .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: clamp(0.8rem, 4vw, 1.2rem); width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue); white-space: nowrap; transform: scaleX(0.92); }
 
-        /* PIXEL FONT LCD */
+        /* REFINED PIXEL LCD */
         .lcd-display { 
             background: #001a1d; 
             border: 3px solid #111;
-            padding: 12px 10px; height: 24%; 
+            padding: 8px 5px; height: 26%; 
             color: var(--lcd-blue); 
-            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), 0 0 10px var(--lcd-glow); 
-            /* YOUR FONT FAMILY */
-            font-family: "Press Start 2P", system-ui;
-            font-weight: 400;
-            font-style: normal;
-            font-size: 0.6rem; 
-            line-height: 1.8;
-            overflow: hidden; position: relative; display: flex; 
-            flex-direction: column; justify-content: space-around; 
-            box-shadow: inset 10px 12px 20px rgba(0,0,0,1), inset -3px -3px 10px rgba(255,255,255,0.15), 0 4px 0 #ff9e7a; 
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), 0 0 8px var(--lcd-glow); 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.55rem; /* Balanced size for mobile */
+            line-height: 1.4;
+            overflow: hidden; position: relative; 
+            display: flex; flex-direction: column; 
+            justify-content: space-around; 
+            box-shadow: inset 8px 10px 20px rgba(0,0,0,1), inset -2px -2px 8px rgba(255,255,255,0.1), 0 4px 0 #ff9e7a; 
             margin-bottom: 10px;
         }
 
-        .lcd-display div { width: 100%; text-align: center; }
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; }
+        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 15s linear infinite; }
+        @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
         .cradle-housing { 
             background: #e0e0e0; background-image: var(--metallic-base); 
@@ -112,10 +111,7 @@
         @keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0); } 40%, 60% { transform: translate3d(2px, 1px, 0); } }
         @keyframes micro-shake { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(1px, 1px, 0); } }
         
-        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
-        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
-        @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .nav-row { font-size: 0.5rem; color: var(--lcd-blue); width: 100%; text-align: center; font-family: "Press Start 2P", system-ui; }
+        .nav-row { font-size: 0.45rem; color: var(--lcd-blue); width: 100%; text-align: center; font-family: 'Press Start 2P', cursive; letter-spacing: -0.5px; }
     </style>
 </head>
 <body>
@@ -123,9 +119,9 @@
         <div class="payphone-container" id="main-unit">
             <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
             <div class="lcd-display" id="lcd">
-                <div id="line1" style="animation: silver-glow 3s infinite; font-size: 0.45rem;">OMAHA PAYPHONE PROJECT</div>
-                <div id="line2">LIFT RECEIVER</div>
-                <div id="line3">LEVANTE EL RECEPTOR</div>
+                <div id="line1" class="line-container" style="font-size: 0.45rem;">OMAHA PAYPHONE PROJECT</div>
+                <div id="line2" class="line-container">LIFT RECEIVER</div>
+                <div id="line3" class="line-container">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
             </div>
             <div class="cradle-housing" onclick="toggleHandset()">
