@@ -74,7 +74,6 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') return;
-    if (id === 'line4') { el.innerHTML = `<div>${text}</div>`; return; }
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
@@ -170,7 +169,8 @@ function playTrack(num) {
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file;
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
