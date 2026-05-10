@@ -14,24 +14,43 @@
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
 
-        body { background-color: #1a1a1a; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 30px 30px; display: flex; justify-content: center; align-items: center; height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; perspective: 1200px; }
+        body { 
+            background-color: #1a1a1a; 
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex; justify-content: center; align-items: center; 
+            height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; 
+            overflow: hidden; perspective: 1200px;
+        }
 
-        .booth-frame { padding: 25px; background: #000; border-radius: 30px; box-shadow: inset 0 0 50px #000; display: flex; justify-content: center; align-items: center; border: 2px solid #222; max-width: 95vw; }
+        .booth-frame { 
+            padding: 25px; background: #000; border-radius: 30px; 
+            box-shadow: inset 0 0 50px #000, 0 10px 30px rgba(0,0,0,0.5); 
+            display: flex; justify-content: center; align-items: center; 
+            border: 2px solid #222; max-width: 95vw; 
+        }
 
-        /* 3D MAIN UNIT & RECOIL ANIMATION */
+        /* 3D UNIT & RECOIL ANIMATIONS */
         .payphone-container { 
             background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
             position: relative; padding: 25px; border-radius: 12px; 
-            border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; border-right: 14px solid var(--coral-shadow); border-bottom: 18px solid #8c381c;
+            border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; 
+            border-right: 14px solid var(--coral-shadow); border-bottom: 18px solid #8c381c;
             width: 320px; text-align: center; box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
-            transform: rotateX(2deg) rotateY(-1deg);
-            transition: transform 0.1s;
+            transform: rotateX(2deg) rotateY(-1deg); transition: transform 0.1s;
         }
 
+        /* HEAVY RECOIL (Hang up) */
         .recoil { animation: recoil-shake 0.15s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0) rotateX(2deg); } 30%, 70% { transform: translate3d(-2px, 3px, 0) rotateX(2deg); } 40%, 60% { transform: translate3d(2px, 1px, 0) rotateX(2deg); } }
 
+        /* MICRO RECOIL (Button press) */
+        .micro-recoil { animation: micro-shake 0.08s linear both; }
+        @keyframes micro-shake { 0% { transform: translate3d(0, 0, 0) rotateX(2deg); } 50% { transform: translate3d(1px, 1px, 0) rotateX(2.1deg); } 100% { transform: translate3d(0, 0, 0) rotateX(2deg); } }
+
         .lcd-display { background: #001a1d; border: 8px solid #222; padding: 10px; height: 110px; margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); font-size: 1.1rem; font-weight: 900; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: space-around; box-shadow: inset 0 0 30px black; }
+        .lcd-display::before { content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%); animation: shimmer 8s infinite; z-index: 5; pointer-events: none; }
+        @keyframes shimmer { 0% { left: -150%; } 100% { left: 150%; } }
 
         .cradle-housing { background: #e0e0e0; background-image: var(--metallic-base); position: relative; padding: 12px 8px; border-radius: 8px; border: 2px solid #444; margin: 0 auto 20px; width: 95%; box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 1px 3px white; }
         .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.5; }
@@ -44,37 +63,20 @@
         .flipper-front::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity:0.6; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
-        /* PERFECTLY CENTERED KEYPAD GRID */
-        .controls-layout {
-            display: grid;
-            grid-template-columns: 1fr 200px 1fr; /* Center column is fixed width */
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        .keypad { 
-            grid-column: 2; /* Locked to center */
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; 
-        }
-
+        .controls-layout { display: grid; grid-template-columns: 210px 60px; align-items: center; justify-content: center; gap: 10px; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        
         /* MECHANICAL BUTTON PHYSICS */
         button.key, .vol-btn { 
             background: #dcdcdc; background-image: var(--metallic-base);
             position: relative; color: #111; border: 1px solid #666; 
             width: 60px; height: 55px; font-size: 1.6rem; border-radius: 6px; 
-            cursor: pointer; box-shadow: 0 6px #222, inset 0 1px 2px white; 
+            cursor: pointer; box-shadow: 0 5px #222, inset 0 1px 2px white; 
             font-weight: 900; transition: transform 0.05s, box-shadow 0.05s;
         }
         button.key::after, .vol-btn::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity: 0.4; border-radius:6px; pointer-events:none; }
-        
-        button.key:active, .vol-btn:active { 
-            transform: translateY(4px); 
-            box-shadow: 0 2px #222, inset 0 2px 8px rgba(0,0,0,0.4); 
-        }
+        button.key:active, .vol-btn:active { transform: translateY(4px); box-shadow: 0 2px #222; }
 
-        .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 8px; }
         .vol-btn { width: 50px; height: 50px; font-size: 0.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         @keyframes silver-glow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 20px white; } }
@@ -93,12 +95,11 @@
     <div class="booth-frame">
         <div class="payphone-container" id="main-unit">
             <div class="lcd-display" id="lcd">
-                <div id="line1" class="line-container" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+                <div id="line1" class="line-container pulsing-header" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
                 <div id="line2" class="line-container">LIFT RECEIVER</div>
                 <div id="line3" class="line-container">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
             </div>
-
             <div class="cradle-housing">
                 <div class="cradle-3d" onclick="toggleHandset()">
                     <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
@@ -108,26 +109,14 @@
                     </div>
                 </div>
             </div>
-            
             <div class="controls-layout">
-                <div></div> <!-- Spacer -->
                 <div class="keypad">
-                    <button class="key" onclick="press('1')">1</button>
-                    <button class="key" onclick="press('2')">2</button>
-                    <button class="key" onclick="press('3')">3</button>
-                    <button class="key" onclick="press('4')">4</button>
-                    <button class="key" onclick="press('5')">5</button>
-                    <button class="key" onclick="press('6')">6</button>
-                    <button class="key" onclick="press('7')">7</button>
-                    <button class="key" onclick="press('8')">8</button>
-                    <button class="key" onclick="press('9')">9</button>
-                    <button class="key" onclick="press('*')">*</button>
-                    <button class="key" onclick="press('0')">0</button>
-                    <button class="key" onclick="press('#')">#</button>
+                    <button class="key" onclick="press('1')">1</button><button class="key" onclick="press('2')">2</button><button class="key" onclick="press('3')">3</button>
+                    <button class="key" onclick="press('4')">4</button><button class="key" onclick="press('5')">5</button><button class="key" onclick="press('6')">6</button>
+                    <button class="key" onclick="press('7')">7</button><button class="key" onclick="press('8')">8</button><button class="key" onclick="press('9')">9</button>
+                    <button class="key" onclick="press('*')">*</button><button class="key" onclick="press('0')">0</button><button class="key" onclick="press('#')">#</button>
                 </div>
-                <div class="vol-container">
-                    <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
-                </div>
+                <div class="vol-container"><button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button></div>
             </div>
         </div>
     </div>
