@@ -14,6 +14,7 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// --- FULL DIRECT URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
@@ -143,12 +144,12 @@ function press(key) {
     } else {
         inputString += key;
         updateLCD("DIALING...", inputString, " ");
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
+                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
+                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
