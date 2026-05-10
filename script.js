@@ -21,16 +21,16 @@ const ui = {
         d: "DIAL ARTIST #", 
         r: "DIAL 5 FOR RANDOM", 
         dr: "DIAL 00# FOR DIR", 
-        nav: "4<PREV|5:RND|6>NEXT|*:MENU", 
-        dn: "2^UP/8vDN/#PLAY/*MENU", 
+        nav: "4:< 5:RANDOM 6:> *:MENU", 
+        dn: "2:^ 8:v #:PLAY *:MENU", 
         inv: "INVALID" 
     },
     es: { 
         d: "MARQUE NUMERO", 
         r: "MARQUE 5 AL AZAR", 
         dr: "00# PARA DIRECTORIO", 
-        nav: "4<ANT|5:AZAR|6>SIG|*:MENU", 
-        dn: "2^SUB/8vBAJ/#PLAY/*MENU", 
+        nav: "4:< 5:AZAR 6:> *:MENU", 
+        dn: "2:^ 8:v #:TOCAR *:MENU", 
         inv: "INVALIDO" 
     }
 };
@@ -131,7 +131,6 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
-    // RESET TO MENU
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
@@ -173,7 +172,7 @@ function showDirectoryEntry() {
 }
 
 function playRandom() {
-    let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined);
+    let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43);
     playTrack(r);
 }
 
