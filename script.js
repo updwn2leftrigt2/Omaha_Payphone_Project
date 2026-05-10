@@ -14,25 +14,11 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
+const baseUrl = "https://archive.org";
 
 const ui = {
-    en: { 
-        d: "DIAL ARTIST #", 
-        r: "DIAL 5 FOR RANDOM", 
-        dr: "DIAL 00# FOR DIR", 
-        nav: "4:< 5:RANDOM 6:> *:MENU", 
-        dn: "2:^ 8:v #:PLAY *:MENU", 
-        inv: "INVALID" 
-    },
-    es: { 
-        d: "MARQUE NUMERO", 
-        r: "MARQUE 5 AL AZAR", 
-        dr: "00# PARA DIRECTORIO", 
-        nav: "4:< 5:AZAR 6:> *:MENU", 
-        dn: "2:^ 8:v #:TOCAR *:MENU", 
-        inv: "INVALIDO" 
-    }
+    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
+    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nav: "4:< 5:AZAR 6:> *:MENU", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
 const directory = {
@@ -88,18 +74,26 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') return;
+    
+    // Line 4 is ALWAYS stationary and centered
+    if (id === 'line4') {
+        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
+        return;
+    }
+
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
-        el.innerHTML = `<div>${text}</div>`;
+        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
     }
 }
 
 function updateLCD(l2, l3, l4) {
-    let force = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false;
+    let allowScroll = (currentTrackNum > 1 && !isDirectoryOpen);
+    let force = allowScroll ? (l2.length > 20 || l3.length > 20) : false;
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
-    writeLine('line4', l4, false);
+    writeLine('line4', l4);
 }
 
 function refreshDisplay() {
