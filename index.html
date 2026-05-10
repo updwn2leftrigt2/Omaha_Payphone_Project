@@ -7,76 +7,100 @@
     <style>
         :root { 
             --payphone-coral: #FF7F50; 
-            --metallic: linear-gradient(145deg, #e0e0e0 0%, #a0a0a0 50%, #777 100%);
+            --metallic: linear-gradient(145deg, #ffffff 0%, #a0a0a0 50%, #444 100%);
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
-        body { background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        
+
+        body { 
+            background-color: #050505; display: flex; justify-content: center; align-items: center; 
+            height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; 
+        }
+
         .payphone-container { 
-            background: var(--payphone-coral); background-image: url("https://transparenttextures.com"); 
-            padding: 20px; border-radius: 20px; border: 6px solid #d45d30; width: 95vw; max-width: 380px; 
-            text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,1); transform: scale(0.95);
+            background: var(--payphone-coral);
+            background-image: url("https://transparenttextures.com");
+            padding: 25px; border-radius: 20px; border: 6px solid #d45d30; 
+            width: 95vw; max-width: 380px; text-align: center;
+            box-shadow: 0 40px 100px rgba(0,0,0,1), inset 0 0 20px rgba(255,255,255,0.2);
+            transform: scale(0.9);
         }
-        
+
+        /* LCD DISPLAY */
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 125px; 
-            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.15rem; /* Larger Font */
-            font-weight: bold; overflow: hidden; position: relative; 
-            display: flex; flex-direction: column; justify-content: space-around; 
-            box-shadow: inset 0 0 30px black; 
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 110px; 
+            margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1.05rem; font-weight: bold; overflow: hidden; position: relative;
+            display: flex; flex-direction: column; justify-content: space-around;
+            box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
-        
-        .lcd-display::before { content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent); animation: shimmer-fast 8s infinite; z-index: 5; pointer-events: none; }
-        @keyframes shimmer-fast { 0% { left: -150%; } 100% { left: 150%; } }
-        .pulsing-header { animation: pulse-header 4s ease-in-out infinite; }
-        @keyframes pulse-header { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        .lcd-display::before { 
+            content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+            animation: shimmer 8s infinite; z-index: 5;
+        }
+        @keyframes shimmer { 0% { left: -150%; } 100% { left: 150%; } }
 
-        .cradle-3d { position: relative; width: 180px; height: 80px; margin: 0 auto 20px; perspective: 600px; }
-        .cradle-base { position: absolute; width: 100%; height: 100%; background: var(--metallic); background-size: 200%; clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%); border: 1px solid #333; box-shadow: 0 10px 15px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: rgba(0,0,0,0.4); font-weight: 900; letter-spacing: 2px; }
-        .flipper { position: absolute; left: 42%; top: 0; width: 16%; height: 45px; background: var(--metallic); background-size: 200%; border: 1px solid #444; border-radius: 2px; transition: transform 0.4s ease; transform-origin: top; z-index: 10; }
-        .flipper.up { transform: rotateX(-110deg); filter: brightness(1.1); }
+        /* 3D V-SHAPED CRADLE WITH BOTTOM-PIVOT FLIPPER */
+        .cradle-3d {
+            position: relative; width: 200px; height: 85px; margin: 0 auto 30px;
+            perspective: 800px; cursor: pointer;
+        }
+        .cradle-base {
+            position: absolute; width: 100%; height: 100%;
+            background: var(--metallic);
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+            border: 2px solid #333; box-shadow: 0 15px 20px rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* STAMPED METAL TEXT EFFECT */
+        .receiver-text {
+            color: #222; font-weight: 900; font-size: 0.8rem; letter-spacing: 4px;
+            text-shadow: 1px 1px 1px rgba(255,255,255,0.4), -1px -1px 1px rgba(0,0,0,0.6);
+            opacity: 0.7; padding-bottom: 10px;
+        }
 
-        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; }
+        /* LARGE SWITCH-STYLE FLIPPER */
+        .flipper {
+            position: absolute; left: 40%; bottom: 0; width: 20%; height: 55px;
+            background: linear-gradient(to top, #666, #aaa 10%, #eee 90%, #999);
+            border: 2px solid #222; border-radius: 3px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom; /* Pivot from the bottom */
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        .flipper.up { 
+            transform: rotateX(70deg) translateY(-10px); 
+            background: #fff; box-shadow: 0 20px 20px rgba(0,0,0,0.5); 
+        }
+
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.3em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
+        .pulsing-header { animation: pulse-header 3s ease-in-out infinite; }
+        @keyframes pulse-header { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        .nav-row { width: 100%; height: 1.2em; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; letter-spacing: -0.2px; color: var(--lcd-blue); }
-
-        /* BALANCED GRID LAYOUT */
-        .controls-layout {
-            display: grid;
-            grid-template-columns: 1fr 240px 1fr; /* Keypad is fixed width in center */
-            align-items: center;
-            justify-content: center;
-        }
-
-        .keypad { 
-            grid-column: 2; /* Forces keypad to center column */
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 12px; 
-        }
-
+        /* CENTERED KEYPAD LAYOUT */
+        .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
+        .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        
         button.key { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; 
-            width: 70px; height: 65px; font-size: 1.8rem; border-radius: 8px; cursor: pointer; 
-            box-shadow: 0 5px #333, inset 0 1px 2px rgba(255,255,255,0.5); font-weight: bold; 
+            background: var(--metallic); background-size: 200%;
+            color: #111; border: 1px solid #777; width: 70px; height: 65px; 
+            font-size: 1.8rem; border-radius: 8px; cursor: pointer; 
+            box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold;
             touch-action: manipulation;
         }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
 
-        .vol-container { 
-            grid-column: 3; /* Places Vol in the right column */
-            display: flex; justify-content: flex-start; padding-left: 10px;
-        }
-
+        .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 10px; }
         .vol-btn { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; 
-            width: 55px; height: 55px; border-radius: 8px; font-size: 0.65rem; font-weight: bold; 
-            box-shadow: 0 5px #333; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; touch-action: manipulation;
+            background: var(--metallic); background-size: 200%;
+            color: #111; border: 1px solid #777; width: 55px; height: 55px; 
+            border-radius: 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px #333; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
     </style>
 </head>
@@ -86,14 +110,19 @@
         <div id="line1" class="line-container pulsing-header">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
-        <div id="line4" class="nav-row">&nbsp;</div>
+        <div id="line4" class="line-container" style="font-size:0.85rem; color:var(--lcd-blue);">&nbsp;</div>
     </div>
+
+    <!-- 3D CRADLE COMPONENT -->
     <div class="cradle-3d" onclick="toggleHandset()">
-        <div class="cradle-base">RECEIVER</div>
+        <div class="cradle-base">
+            <span class="receiver-text">RECEIVER</span>
+        </div>
         <div id="handset-flipper" class="flipper"></div>
     </div>
+    
     <div class="controls-layout">
-        <div></div> <!-- Empty left column for balance -->
+        <div></div>
         <div class="keypad">
             <button class="key" onclick="press('1')">1</button>
             <button class="key" onclick="press('2')">2</button>
