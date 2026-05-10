@@ -29,7 +29,13 @@
     border-color: #f00 !important;
 }
 
-* { -webkit-tap-highlight-color: transparent !important; }
+/* METALLIC SHIMMER ANIMATION */
+@keyframes metallic-shimmer {
+    0% { transform: translateX(-150%) skewX(-25deg); }
+    25%, 100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+* { -webkit-tap-highlight-color: transparent !important; box-sizing: border-box; }
 
 body {
     background-color: #1a1a1a; 
@@ -94,6 +100,23 @@ body {
     border-top: 2px solid #fff; border-left: 2px solid #ddd;
     border-right: 4px solid #444; border-bottom: 6px solid #222;
     box-shadow: 10px 15px 25px rgba(0,0,0,0.7);
+    overflow: hidden; /* Important for shimmer */
+}
+
+/* THE SHIMMER LAYER */
+.cradle-housing::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 40%; height: 100%;
+    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+    z-index: 5;
+    animation: metallic-shimmer 3.5s infinite ease-in-out;
+    pointer-events: none;
+}
+
+/* Hide shimmer when phone is lifted */
+.handset-up .cradle-housing::before {
+    display: none;
 }
 
 .cradle-housing::after { 
@@ -148,7 +171,7 @@ button.key:active, .vol-btn:active { transform: translateY(3px); box-shadow: 0 1
 <div class="payphone-container" id="main-unit">
 <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
 <div class="lcd-display" id="lcd">
-<div id="line1" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+<div id="line1">OMAHA PAYPHONE PROJECT</div>
 <div id="line2">LIFT RECEIVER</div>
 <div id="line3">LEVANTE EL RECEPTOR</div>
 <div id="line4" class="nav-row">&nbsp;</div>
