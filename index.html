@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- YOUR EXACT FONT LINKS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
+        /* YOUR EXACT CSS CLASS */
+        .press-start-2p-regular {
+          font-family: "Press Start 2P", system-ui;
+          font-weight: 400;
+          font-style: normal;
+        }
+
         :root { 
             --payphone-coral: #FF7F50; 
             --coral-shadow: #b34a24;
@@ -29,7 +38,12 @@
             overflow: hidden;
         }
 
-        .booth-frame { padding: 15px; background: #000; border-radius: 30px; box-shadow: inset 0 0 60px #000; display: flex; justify-content: center; align-items: center; border: 2px solid #222; max-width: 95vw; max-height: 95svh; pointer-events: none; }
+        .booth-frame { 
+            padding: 15px; background: #000; border-radius: 30px; 
+            box-shadow: inset 0 0 60px #000; display: flex; justify-content: center; 
+            align-items: center; border: 2px solid #222; max-width: 95vw; max-height: 95svh;
+            pointer-events: none;
+        }
 
         .payphone-container { 
             background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
@@ -49,32 +63,28 @@
         }
         .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: clamp(0.8rem, 4vw, 1.2rem); width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue); white-space: nowrap; transform: scaleX(0.92); }
 
-        /* LARGER ENHANCED LCD */
+        /* BIGGER LCD - 3 LINE MODE */
         .lcd-display { 
             background: #001a1d; border: 4px solid #111;
-            padding: 15px 5px; 
-            height: 32%; /* LARGER SIZE */
+            padding: 20px 5px; height: 30%; 
             color: var(--lcd-blue); 
-            text-shadow: 0 0 8px var(--lcd-glow); 
-            box-shadow: 
-                inset 10px 12px 25px rgba(0,0,0,1), 
-                inset -3px -3px 10px rgba(255,255,255,0.1), 
-                0 4px 0 #ff9e7a; 
+            text-shadow: 0 0 10px var(--lcd-glow); 
+            box-shadow: inset 10px 12px 25px rgba(0,0,0,1), inset -3px -3px 10px rgba(255,255,255,0.1), 0 4px 0 #ff9e7a; 
             margin-bottom: 15px;
             display: flex; flex-direction: column; justify-content: space-around;
             overflow: hidden; position: relative;
         }
 
-        /* SCANLINE EFFECT */
-        .lcd-display::before {
+        /* Scanline effect */
+        .lcd-display::after {
             content: " "; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            z-index: 2; background-size: 100% 3px, 3px 100%; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 2; background-size: 100% 4px; pointer-events: none;
         }
 
         .line-container, .nav-row { 
             width: 100%; text-align: center; 
-            font-size: 12pt; font-family: "Press Start 2P", system-ui;
+            font-size: 14pt; /* INCREASED SIZE */
             white-space: nowrap; overflow: hidden; z-index: 3;
         }
 
@@ -100,11 +110,11 @@
     <div class="booth-frame">
         <div class="payphone-container" id="main-unit">
             <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
-            <div class="lcd-display" id="lcd">
-                <div id="line1" class="line-container">PAYPHONE PROJ</div>
-                <div id="line2" class="line-container">LIFT RECEIVER</div>
-                <div id="line3" class="line-container">DIAL ANY #</div>
-                <div id="line4" class="nav-row">&nbsp;</div>
+            <div class="lcd-display press-start-2p-regular" id="lcd">
+                <!-- REDUCED TO 3 LINES FOR MAXIMUM SIZE -->
+                <div id="line2" class="line-container press-start-2p-regular">LIFT RECEIVER</div>
+                <div id="line3" class="line-container press-start-2p-regular">DIAL ANY #</div>
+                <div id="line4" class="nav-row press-start-2p-regular">&nbsp;</div>
             </div>
             <div class="cradle-housing" onclick="toggleHandset()">
                 <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
