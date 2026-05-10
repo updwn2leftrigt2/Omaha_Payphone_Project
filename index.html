@@ -8,6 +8,7 @@
         :root { 
             --payphone-coral: #FF7F50; 
             --metallic: linear-gradient(145deg, #ffffff 0%, #b0b0b0 50%, #666 100%);
+            --recessed-metal: linear-gradient(to bottom, #333 0%, #555 50%, #222 100%);
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
@@ -16,65 +17,62 @@
 
         .payphone-container { 
             background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
-            padding: 20px; border-radius: 20px; border: 6px solid #d45d30; width: 95vw; max-width: 380px; text-align: center;
+            padding: 20px; border-radius: 20px; border: 6px solid #d45d30; width: 95vw; max-width: 400px; text-align: center;
             box-shadow: 0 40px 100px rgba(0,0,0,1), inset 0 0 20px rgba(255,255,255,0.2);
-            animation: ambient-pulse 10s ease-in-out infinite; transform: scale(0.9);
+            animation: ambient-pulse 10s ease-in-out infinite; transform: scale(0.88);
         }
 
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 130px; 
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
             margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
             font-size: 1.25rem; font-weight: 900; overflow: hidden; position: relative;
             display: flex; flex-direction: column; justify-content: space-around;
             box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
 
-        /* METALLIC PLATE */
+        /* WIDER SILVER PLATE HOUSING */
         .cradle-housing {
             background: var(--metallic); background-size: 200%;
-            padding: 12px; border-radius: 8px; border: 2px solid #555;
-            margin: 0 auto 25px; width: fit-content; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 1px 2px white;
+            padding: 15px 10px; border-radius: 8px; border: 2px solid #555;
+            margin: 0 auto 25px; width: 320px; /* Widened */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 1px 3px white;
         }
 
-        /* RECESSED TRAPEZOID WITH GRADIENT SHADOW (Wide Top) */
+        /* RECESSED METALLIC TRAPEZOID */
         .cradle-3d {
-            position: relative; width: 240px; height: 100px; perspective: 1000px; cursor: pointer;
+            position: relative; width: 100%; height: 110px; perspective: 1000px; cursor: pointer;
         }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, #000 0%, #222 50%, #444 100%);
-            clip-path: polygon(0% 0%, 100% 0%, 75% 100%, 25% 100%);
-            box-shadow: inset 0 15px 25px black;
+            background: var(--recessed-metal);
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+            box-shadow: inset 0 20px 40px rgba(0,0,0,0.8); /* Deep recess effect */
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 10px;
+            padding-top: 12px;
         }
         
-        /* BOLD GREY GLOWING TEXT */
         .receiver-text {
-            color: #ddd; font-weight: 950; font-size: 1.1rem; letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.4);
+            color: #ccc; font-weight: 950; font-size: 1.2rem; letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(255,255,255,0.3);
             animation: silver-glow 3s infinite;
         }
-        @keyframes silver-glow { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; text-shadow: 0 0 15px white; } }
 
-        /* HEX FLIPPER - Hinged at Narrow Bottom */
-        .flipper-box {
-            position: absolute; left: 40%; bottom: 10px; width: 20%; height: 50px;
-            transform-style: preserve-3d;
+        /* REBUILT SMOOTH FLIPPER */
+        .flipper {
+            position: absolute; left: 40%; top: 45px; width: 20%; height: 45px;
+            background: var(--metallic); background-size: 200%;
+            border: 2px solid #222; border-radius: 3px;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom center;
+            transform-origin: top center; /* Hinge at top */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 10;
         }
-        .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic); border: 1px solid #111; }
-        .flipper-front  { transform: translateZ(12px); }
-        .flipper-back   { transform: rotateY(180deg) translateZ(12px); }
-        .flipper-right  { width: 24px; transform: rotateY(90deg) translateZ(23px); left: 50%; margin-left: -12px;}
-        .flipper-left   { width: 24px; transform: rotateY(-90deg) translateZ(23px); left: 50%; margin-left: -12px;}
-        .flipper-top    { height: 24px; transform: rotateX(90deg) translateZ(35px); }
-        
-        .flipper-box.up { transform: rotateX(35deg); }
+        /* Half-flip: 30 degrees */
+        .flipper.up { transform: rotateX(-30deg); filter: brightness(1.2); }
 
+        @keyframes silver-glow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 20px white; } }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(105%); } }
+
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -82,7 +80,7 @@
 
         .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
         .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        button.key { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 72px; height: 68px; font-size: 1.9rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold; touch-action: manipulation; }
+        button.key { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 72px; height: 68px; font-size: 1.9rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold; }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
         .vol-btn { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 58px; height: 58px; border-radius: 8px; font-size: 0.65rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
@@ -101,13 +99,7 @@
             <div class="cradle-base">
                 <span class="receiver-text">RECEIVER / RECEPTOR</span>
             </div>
-            <div id="handset-flipper" class="flipper-box">
-                <div class="flipper-face flipper-front"></div>
-                <div class="flipper-face flipper-back"></div>
-                <div class="flipper-face flipper-right"></div>
-                <div class="flipper-face flipper-left"></div>
-                <div class="flipper-face flipper-top"></div>
-            </div>
+            <div id="handset-flipper" class="flipper"></div>
         </div>
     </div>
     
