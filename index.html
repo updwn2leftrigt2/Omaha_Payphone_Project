@@ -21,7 +21,6 @@
             animation: ambient-pulse 10s ease-in-out infinite; transform: scale(0.9);
         }
 
-        /* LARGE LCD PROMPTS */
         .lcd-display { 
             background: #001a1d; border: 8px solid #222; padding: 10px; height: 130px; 
             margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
@@ -36,14 +35,13 @@
         }
         @keyframes shimmer-fast { 0% { left: -150%; } 100% { left: 150%; } }
 
-        /* RE-PROPORTIONED CRADLE (1/3 Smaller Height) */
+        /* CRADLE & PULSING TEXT */
         .cradle-housing {
             background: rgba(0,0,0,0.5); padding: 8px; border-radius: 10px;
             margin: 0 auto 20px; width: fit-content; box-shadow: inset 0 5px 15px black;
         }
         .cradle-3d {
-            position: relative; width: 220px; height: 65px; /* Height reduced */
-            perspective: 1000px; cursor: pointer;
+            position: relative; width: 220px; height: 65px; perspective: 1000px; cursor: pointer;
         }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
@@ -55,37 +53,42 @@
         }
         
         .receiver-text {
-            color: #000; font-weight: 900; font-size: 0.7rem; letter-spacing: 3px;
-            opacity: 0.9; line-height: 1.1; margin-top: 2px;
-            animation: interactive-pulse 2s infinite;
+            color: #000; font-weight: 900; font-size: 0.75rem; letter-spacing: 4px;
+            line-height: 1.1; margin-top: 2px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.4);
+            animation: receiver-pulse 2s infinite;
+        }
+        @keyframes receiver-pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
         }
 
-        /* FLIPPER LOWERED TO CLEAR TEXT */
+        /* FLIPPER LOWERED FURTHER */
         .flipper-box {
-            position: absolute; left: 40%; top: 22px; /* Moved down slightly */
-            width: 20%; height: 40px; /* Scaled to fit smaller cradle */
+            position: absolute; left: 40%; top: 32px; /* Moved lower to clear text */
+            width: 20%; height: 30px; 
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: top center;
-            animation: interactive-pulse 2s infinite;
+            animation: flip-pulse 2s infinite;
         }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic); border: 1px solid #111; }
         .flipper-front  { transform: translateZ(12px); }
         .flipper-back   { transform: rotateY(180deg) translateZ(12px); }
         .flipper-right  { width: 24px; transform: rotateY(90deg) translateZ(23px); left: 50%; margin-left: -12px;}
         .flipper-left   { width: 24px; transform: rotateY(-90deg) translateZ(23px); left: 50%; margin-left: -12px;}
-        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(30px); }
+        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(20px); }
         
-        .flipper-box.up { transform: rotateX(-45deg); animation: none; }
+        /* 30 DEGREE FLIP */
+        .flipper-box.up { transform: rotateX(-30deg); animation: none; }
 
-        @keyframes interactive-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+        @keyframes flip-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(108%); } }
 
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* INCREASED NAV FONT SIZE */
         .nav-row { font-size: 1rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
         .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
