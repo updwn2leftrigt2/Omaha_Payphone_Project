@@ -7,70 +7,123 @@
     <style>
         :root { 
             --payphone-coral: #FF7F50; 
-            --button-silver: #C0C0C0;
+            --metallic-silver: linear-gradient(145deg, #cfcfcf, #919191);
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
+
         body { 
-            background-color: #333; display: flex; justify-content: center; align-items: center; 
+            background-color: #1a1a1a; /* Darker bg to make coral pop */
+            display: flex; justify-content: center; align-items: center; 
             height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; 
+            background-image: radial-gradient(circle, #333 1px, transparent 1px);
+            background-size: 20px 20px;
         }
+
+        /* Faceplate with noise texture */
         .payphone-container { 
-            background: var(--payphone-coral); padding: 15px; border-radius: 15px; 
-            border: 5px solid #d45d30; width: 90vw; max-width: 340px; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); transform: scale(0.95);
+            background: var(--payphone-coral);
+            background-image: url("https://transparenttextures.com"); /* subtle texture */
+            padding: 20px; border-radius: 10px; 
+            border: 6px solid #d45d30; width: 92vw; max-width: 360px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,255,255,0.2); 
+            transform: scale(0.95);
         }
+
+        /* METALLIC CRADLE / RECEIVER HOOK */
+        .handset-cradle {
+            width: 140px; height: 35px; background: var(--metallic-silver);
+            margin: 0 auto 20px; border-radius: 5px; border: 2px solid #555;
+            box-shadow: 0 4px #444, 0 10px 15px rgba(0,0,0,0.3);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #222; font-weight: bold; font-size: 0.8rem;
+            clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%); /* Cradle shape */
+            transition: all 0.1s;
+        }
+        .handset-cradle.off-hook { transform: translateY(4px); box-shadow: 0 0 #444; background: #eee; }
+
+        /* LCD WITH GLASS GLARE AND SCANLINES */
         .lcd-display { 
-            background: #001a1d; border: 6px solid #222; padding: 10px; height: 125px; 
-            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.05rem; font-weight: bold; overflow: hidden;
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 110px; 
+            margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1rem; font-weight: bold; overflow: hidden; position: relative;
             display: flex; flex-direction: column; justify-content: space-around;
+            box-shadow: inset 0 0 20px black;
         }
-        .pulsing-header { animation: pulse 3s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; text-shadow: 0 0 2px var(--lcd-glow); } 50% { opacity: 1; text-shadow: 0 0 15px var(--lcd-glow); } }
-        
-        .line-container { 
-            width: 100%; overflow: hidden; white-space: nowrap; height: 1.3em; 
-            display: flex; justify-content: center; align-items: center; position: relative;
+        .lcd-display::before { /* Scanlines */
+            content: " "; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 118, 0.03));
+            background-size: 100% 3px, 3px 100%; pointer-events: none;
         }
-        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 15s linear infinite; }
+        .lcd-display::after { /* Glass Glare */
+            content: " "; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
+        }
+
+        .pulsing-header { animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; }
+        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 18s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* LAYOUT: KEYPAD + VOLUME */
+        .controls-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
         
-        .vol-btn { background: #0047ab; color: white; border: 2px solid #000; padding: 8px; font-size: 0.75rem; margin-bottom: 12px; cursor: pointer; width: 110px; border-radius: 5px; font-weight: bold; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; flex-grow: 1; }
+        
         button.key { 
-            background: var(--button-silver); color: #333; border: 2px solid #888; 
-            padding: 15px; font-size: 1.5rem; border-radius: 5px; cursor: pointer; 
-            box-shadow: 0 3px #666; font-weight: bold; touch-action: manipulation;
+            background: var(--metallic-silver); color: #111; border: 1px solid #777; 
+            padding: 16px 0; font-size: 1.6rem; border-radius: 4px; cursor: pointer; 
+            box-shadow: 0 4px #555; font-weight: bold; touch-action: manipulation;
+            transition: 0.1s;
         }
-        button.key:active { transform: translateY(2px); box-shadow: 0 0 #666; }
-        .handset-btn { width: 100%; background: #a00; color: white; padding: 12px; margin-bottom: 12px; font-size: 1.1rem; cursor: pointer; border-radius: 5px; box-shadow: 0 4px #600; font-weight: bold; }
-        .handset-btn.off-hook { background: #0a0; box-shadow: 0 4px #060; }
+        button.key:active { transform: translateY(3px); box-shadow: 0 1px #555; }
+
+        /* CIRCULAR METALLIC VOLUME BUTTON */
+        .vol-btn { 
+            background: var(--metallic-silver); color: #222; border: 2px solid #666; 
+            width: 70px; height: 70px; border-radius: 50%; font-size: 0.7rem; 
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px #444;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            line-height: 1; transition: 0.1s;
+        }
+        .vol-btn:active { transform: translateY(3px); box-shadow: 0 1px #444; }
     </style>
 </head>
 <body>
 <div class="payphone-container">
+    <!-- Handset Cradle Button -->
+    <div id="handset-toggle" class="handset-cradle" onclick="toggleHandset()">LIFT / LEVANTE</div>
+
     <div class="lcd-display" id="lcd">
         <div id="line1" class="line-container pulsing-header">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
         <div id="line4" class="line-container">&nbsp;</div>
     </div>
-    <button id="handset-toggle" class="handset-btn" onclick="toggleHandset()">LIFT HANDSET / LEVANTE</button>
-    <button class="vol-btn" onclick="cycleVolume()">VOLUME PRESS</button>
-    <div class="keypad">
-        <button class="key" onclick="press('1')">1</button>
-        <button class="key" onclick="press('2')">2</button>
-        <button class="key" onclick="press('3')">3</button>
-        <button class="key" onclick="press('4')">4</button>
-        <button class="key" onclick="press('5')">5</button>
-        <button class="key" onclick="press('6')">6</button>
-        <button class="key" onclick="press('7')">7</button>
-        <button class="key" onclick="press('8')">8</button>
-        <button class="key" onclick="press('9')">9</button>
-        <button class="key" onclick="press('*')">*</button>
-        <button class="key" onclick="press('0')">0</button>
-        <button class="key" onclick="press('#')">#</button>
+    
+    <div class="controls-row">
+        <div class="keypad">
+            <button class="key" onclick="press('1')">1</button>
+            <button class="key" onclick="press('2')">2</button>
+            <button class="key" onclick="press('3')">3</button>
+            <button class="key" onclick="press('4')">4</button>
+            <button class="key" onclick="press('5')">5</button>
+            <button class="key" onclick="press('6')">6</button>
+            <button class="key" onclick="press('7')">7</button>
+            <button class="key" onclick="press('8')">8</button>
+            <button class="key" onclick="press('9')">9</button>
+            <button class="key" onclick="press('*')">*</button>
+            <button class="key" onclick="press('0')">0</button>
+            <button class="key" onclick="press('#')">#</button>
+        </div>
+
+        <button class="vol-btn" onclick="cycleVolume()">
+            VOL<br>PRESS
+        </button>
     </div>
 </div>
 <script src="script.js"></script>
