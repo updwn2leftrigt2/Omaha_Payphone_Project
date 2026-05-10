@@ -35,26 +35,42 @@ function playDialTone(digit) {
     osc1.start(); osc1.stop(audioCtx.currentTime + 0.2);
 }
 
+// --- VOICEMAIL BEEP ---
+function playVoicemailBeep() {
+    const beep = audioCtx.createOscillator();
+    const beepGain = audioCtx.createGain();
+    beep.frequency.setValueAtTime(1000, audioCtx.currentTime);
+    beepGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    beepGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    beep.connect(beepGain); beepGain.connect(audioCtx.destination);
+    beep.start(); beep.stop(audioCtx.currentTime + 0.5);
+}
+
 function triggerRecoil(type = 'heavy') {
     const unit = document.getElementById('main-unit');
     if (unit) { unit.classList.remove('recoil', 'micro-recoil'); void unit.offsetWidth; unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil'); }
 }
 
 function startRecording() {
-  updateLCD("VOICEMAIL SYSTEM", "STARTING RECORDER", "WAIT...");
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    isRecording = true;
-    mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
-    mediaRecorder.onstop = () => {
-      recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      isReviewing = true;
-      updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
-    };
-    mediaRecorder.start();
-    updateLCD("LEAVE MESSAGE", "PRESS # TO FINISH", "● RECORDING");
-  }).catch(err => { updateLCD("MIC ERROR", "CHECK PERMISSIONS", " "); });
+  updateLCD("VOICEMAIL SYSTEM", "WAIT FOR BEEP...", " ");
+  setTimeout(() => {
+      playVoicemailBeep();
+      setTimeout(() => {
+          navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            isRecording = true;
+            mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
+            mediaRecorder.onstop = () => {
+              recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              isReviewing = true;
+              updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
+            };
+            mediaRecorder.start();
+            updateLCD("LEAVE MESSAGE", "PRESS # TO FINISH", "● RECORDING");
+          }).catch(err => { updateLCD("MIC ERROR", "CHECK PERMISSIONS", " "); });
+      }, 600); // Small delay after beep
+  }, 1000);
 }
 
 function uploadToDrive(blob) {
@@ -78,9 +94,10 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 2, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
+// UPDATED UI TO INCLUDE 402# PROMPT
 const ui = {
-    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
-    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
+    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "402# FOR VOICEMAIL", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
+    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "402# MENSAJE", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
 const directory = { 1: { title: "DIAL TONE", artist: "SYSTEM" }, 2: { title: "Peacocks Patient", artist: "Alina Nguyen" }, 3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 4: { title: "Madeleine", artist: "Amelie Raoul" }, 5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 7: { title: "Whos Gonna Stand Up", artist: "BOLD NE (Neil Young)" }, 8: { title: "Alone.", artist: "Dos Mundos (Colton S.)" }, 9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 10: { title: "2+1", artist: "Dead Poets" }, 11: { title: "Childhood", artist: "Dereck Higgins" }, 12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J)" }, 13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 14: { title: "Love Surrounding", artist: "EDEM SOUL" }, 15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 16: { title: "May Queen", artist: "Hair Person" }, 17: { title: "Duniya", artist: "ID (ilahi & deLorenzo)" }, 18: { title: "Alignment", artist: "Jewel Rodgers & Serholt" }, 19: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 20: { title: "Racecar", artist: "Kevin Paradise" }, 21: { title: "My Father Apologizes", artist: "Kimberly Nguyen" }, 22: { title: "Gbandjo", artist: "Kusher Snazzy" }, 23: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 24: { title: "For You & Presence", artist: "Maritza N. Estrada" }, 25: { title: "Shimmering", artist: "Mesonjixx (Mary L)" }, 26: { title: "Amethyst", artist: "Melina" }, 27: { title: "Here We Are. Still.", artist: "Meredith Ann Fuller" }, 28: { title: "An Act of Naming", artist: "Natasha Kessler" }, 29: { title: "Critic", artist: "Ol Mo (Robin S Kessler)" }, 31: { title: "FOLK SONG 3", artist: "Otis Twelve (ft Dereck)" }, 32: { title: "Snow Song", artist: "Rayni Wekluk" }, 33: { title: "Unconditional Blues", artist: "Renzellous Brown" }, 34: { title: "Edgy Refugee", artist: "Rosine Selemani" }, 35: { title: "Slumber", artist: "Sam Brock" }, 36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe" }, 37: { title: "Folks", artist: "Sgt. Leisure" }, 38: { title: "FU Babies", artist: "Stacey Barelos" }, 39: { title: "To the Broken Few", artist: "Stolen Wolves (Inno)" }, 40: { title: "My Journey", artist: "Sulekha Ali" }, 41: { title: "A la", artist: "Sanchez/Bartolomei/Boyd" }, 42: { title: "THEY BITE", artist: "SWAMPD" }, 44: { title: "Hold On", artist: "The Mynabirds (Laura)" }, 45: { title: "Agnostic Maps", artist: "Todd Robinson" }, 46: { title: "Against Distance", artist: "Trey Moody" }, 47: { title: "All Nighter", artist: "UN-T.I.L." }, 48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 49: { title: "The Ocelot", artist: "Winston F. Schneider" } };
