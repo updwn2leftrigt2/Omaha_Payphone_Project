@@ -16,7 +16,7 @@
             --off-white: #fdfaf0;
         }
 
-        * { -webkit-tap-highlight-color: transparent !important; touch-action: manipulation; }
+        * { -webkit-tap-highlight-color: transparent !important; }
         
         body { 
             background-color: #1a1a1a; background-image: radial-gradient(#333 1px, transparent 1px);
@@ -25,12 +25,15 @@
             overflow: hidden;
         }
 
+        /* BOOTH FRAME - Ignoring mouse so it doesn't block clicks */
         .booth-frame { 
             padding: 15px; background: #000; border-radius: 30px; 
             box-shadow: inset 0 0 60px #000; display: flex; justify-content: center; 
             align-items: center; border: 2px solid #222; max-width: 95vw; max-height: 95svh;
+            pointer-events: none; /* Mouse clicks pass right through this... */
         }
 
+        /* PHONE UNIT - Re-enabling mouse */
         .payphone-container { 
             background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
             position: relative; padding: 2.5vh; border-radius: 12px; 
@@ -39,7 +42,8 @@
             height: 82svh; aspect-ratio: 310 / 520; text-align: center; 
             box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
             display: flex; flex-direction: column; justify-content: space-between;
-            z-index: 5; /* Ensure phone is in front of the black booth background */
+            pointer-events: auto; /* ...and stop here to hit the buttons */
+            z-index: 10;
         }
 
         .phone-sign {
@@ -51,7 +55,6 @@
 
         .lcd-display { background: #001a1d; border: 8px solid #222; padding: 10px; height: 20%; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); font-size: clamp(0.7rem, 3.5vw, 1.05rem); font-weight: 900; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: space-around; box-shadow: inset 0 0 30px black; }
 
-        /* CRADLE HOUSING - Clickable Area */
         .cradle-housing { 
             background: #e0e0e0; background-image: var(--metallic-base); position: relative; 
             padding: 8px; border-radius: 8px; border: 2px solid #444; width: 95%; align-self: center; 
@@ -65,7 +68,6 @@
 
         .flipper-container { position: absolute; left: 40%; top: 25px; width: 20%; height: 30px; transform-style: preserve-3d; transition: transform 0.5s ease; transform-origin: top center; }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #222; }
-        .flipper-front::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity:0.6; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
         .controls-layout { display: grid; grid-template-columns: 1fr 180px 1fr; align-items: center; justify-content: center; width: 100%; margin-bottom: 5px; }
@@ -100,8 +102,8 @@
                 <div id="line3">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
             </div>
-            <!-- onclick is back on the housing for maximum mouse compatibility -->
-            <div class="cradle-housing" onclick="toggleHandset()">
+            <!-- Clickable Housing -->
+            <div class="cradle-housing" id="trigger-cradle" onclick="toggleHandset()">
                 <div class="cradle-3d">
                     <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
                     <div id="handset-flipper" class="flipper-container">
