@@ -4,8 +4,7 @@ audio.crossOrigin = "anonymous";
 clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
-
-const dtmfFreqs = { "1": [697, 1209], "2": [697, 1336], "3": [697, 1477], "4": [770, 1209], "5": [770, 1336], "6": [770, 1477], "7": [852, 1209], "8": [852, 1336], "9": [852, 1477], "*": [941, 1209], "0": [941, 1336], "#": [941, 1477] };
+const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
 
 function initAudioEngine() {
     if (audioCtx) return;
@@ -21,7 +20,7 @@ function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
     const freqs = dtmfFreqs[digit]; if (!freqs) return;
     const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc1.frequency.value = freqs[0]; osc2.frequency.value = freqs[1];
+    osc1.frequency.value = freqs; osc2.frequency.value = freqs;
     g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc1.connect(g); osc2.connect(g); g.connect(audioCtx.destination);
     osc1.start(); osc2.start(); osc1.stop(audioCtx.currentTime + 0.2); osc2.stop(audioCtx.currentTime + 0.2);
@@ -32,10 +31,14 @@ function triggerRecoil(type = 'heavy') {
     if (unit) { unit.classList.remove('recoil', 'micro-recoil'); void unit.offsetWidth; unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil'); }
 }
 
-// --- NEW ANTI-ZOOM LISTENER ---
-document.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) e.preventDefault(); // Prevents multi-touch zoom
-}, { passive: false });
+// --- IOS ZOOM KILLER ---
+let lastTap = 0;
+document.addEventListener('touchend', function (e) {
+    let currentTime = new Date().getTime();
+    let tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) { e.preventDefault(); }
+    lastTap = currentTime;
+}, false);
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 2, volIndex = 1, cmdTimer = null;
@@ -62,9 +65,17 @@ function toggleHandset() { initAudioEngine(); isOffHook = !isOffHook; if (!isOff
 
 function press(key) { if (!isOffHook) return; triggerRecoil('micro'); playDialTone(key); if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; } if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; } if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; } if (isDirectoryOpen) { if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); } else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); } else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; } return; } if (key === '#') { if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); } else { const d = parseInt(inputString); if (directory[d]) playTrack(d); else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); } } inputString = ""; } else { inputString += key; updateLCD("DIALING...", inputString, " "); if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49); else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2); inputString = ""; } cmdTimer = null; }, 1000); } } }
 
+function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined || r === 30 || r === 43); playTrack(r); }
-
 function playTrack(num) { if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; } currentTrackNum = num; audio.pause(); if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); } clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400); }
 
-function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+// --- EVENT LISTENERS ---
+document.getElementById('receiver-hit-area').addEventListener('touchend', (e) => { e.preventDefault(); toggleHandset(); });
+document.getElementById('vb').addEventListener('touchend', (e) => { e.preventDefault(); cycleVolume(); });
+['1','2','3','4','5','6','7','8','9','0','s','h'].forEach(k => {
+    const id = (k === 's') ? 'ks' : (k === 'h') ? 'kh' : 'k' + k;
+    const keyVal = (k === 's') ? '*' : (k === 'h') ? '#' : k;
+    document.getElementById(id).addEventListener('touchend', (e) => { e.preventDefault(); press(keyVal); });
+});
