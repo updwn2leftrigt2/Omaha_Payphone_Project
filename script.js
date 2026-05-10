@@ -5,7 +5,7 @@ clickAudio.crossOrigin = "anonymous";
 
 // --- VOLUME BOOST LOGIC ---
 const trackGains = {
-    5: 2.5,  // Boost Amy Haddad (Track 5) by 2.5x
+    5: 4.5,  // Boost Amy Haddad (Track 5) by 2.5x
     7: 1.0   // Example: Keep Track 7 at normal 1.0 (you can add others here)
 };
 
