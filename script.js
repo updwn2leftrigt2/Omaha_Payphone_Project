@@ -17,8 +17,22 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nv: "4<PREV|5:RND|6>NEXT", dn: "2^UP/8vDN/#PLAY", inv: "INVALID" },
-    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nv: "4<ANT|5:AZAR|6>SIG", dn: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
+    en: { 
+        d: "DIAL ARTIST #", 
+        r: "DIAL 5 FOR RANDOM", 
+        dr: "DIAL 00# FOR DIR", 
+        nav: "4<PREV|5:RND|6>NEXT|*:MENU", 
+        dn: "2^UP/8vDN/#PLAY/*MENU", 
+        inv: "INVALID" 
+    },
+    es: { 
+        d: "MARQUE NUMERO", 
+        r: "MARQUE 5 AL AZAR", 
+        dr: "00# PARA DIRECTORIO", 
+        nav: "4<ANT|5:AZAR|6>SIG|*:MENU", 
+        dn: "2^SUB/8vBAJ/#PLAY/*MENU", 
+        inv: "INVALIDO" 
+    }
 };
 
 const directory = {
@@ -95,7 +109,7 @@ function refreshDisplay() {
     else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr);
     else {
         const t = directory[currentTrackNum];
-        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nv);
+        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav);
     }
 }
 
@@ -139,13 +153,12 @@ function press(key) {
     } else {
         inputString += key;
         updateLCD("DIALING...", inputString, " ");
-        // Command check: If 4,5,6 is pressed alone, wait 1s. If music is NOT playing, 5 still works for random from menu.
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
+                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
@@ -171,7 +184,8 @@ function playTrack(num) {
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file;
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
