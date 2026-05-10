@@ -5,7 +5,7 @@ clickAudio.crossOrigin = "anonymous";
 
 let audioCtx, compressor, gainNode, source;
 
-// --- ACCURATE DTMF FREQUENCY PAIRS (Low & High Groups) ---
+// --- AUTHENTIC DTMF FREQUENCIES ---
 const dtmfFreqs = {
     "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
     "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
@@ -18,56 +18,38 @@ function initAudioEngine() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     compressor = audioCtx.createDynamicsCompressor();
     gainNode = audioCtx.createGain(); 
-    
     source = audioCtx.createMediaElementSource(audio);
     source.connect(gainNode);
     gainNode.connect(compressor);
     compressor.connect(audioCtx.destination);
-    
-    // Normalization Settings
     compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
-    compressor.knee.setValueAtTime(30, audioCtx.currentTime);
-    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
 }
 
-// --- ANALOG-STYLE DTMF GENERATOR ---
 function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
     const freqs = dtmfFreqs[digit];
     if (!freqs) return;
-
-    const lowOsc = audioCtx.createOscillator();
-    const highOsc = audioCtx.createOscillator();
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
     const toneGain = audioCtx.createGain();
-
-    lowOsc.type = 'sine';
-    highOsc.type = 'sine';
-    lowOsc.frequency.setValueAtTime(freqs[0], audioCtx.currentTime);
-    highOsc.frequency.setValueAtTime(freqs[1], audioCtx.currentTime);
-
-    // Fade in/out quickly to prevent popping and sound "mechanical"
+    osc1.type = 'sine'; osc2.type = 'sine';
+    osc1.frequency.setValueAtTime(freqs[0], audioCtx.currentTime);
+    osc2.frequency.setValueAtTime(freqs[1], audioCtx.currentTime);
     toneGain.gain.setValueAtTime(0, audioCtx.currentTime);
     toneGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.01); 
     toneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-
-    lowOsc.connect(toneGain);
-    highOsc.connect(toneGain);
+    osc1.connect(toneGain); osc2.connect(toneGain);
     toneGain.connect(audioCtx.destination);
-
-    lowOsc.start();
-    highOsc.start();
-    lowOsc.stop(audioCtx.currentTime + 0.2);
-    highOsc.stop(audioCtx.currentTime + 0.2);
+    osc1.start(); osc2.start();
+    osc1.stop(audioCtx.currentTime + 0.2); osc2.stop(audioCtx.currentTime + 0.2);
 }
 
-// --- VISUAL RECOIL TRIGGER ---
-function triggerRecoil() {
+function triggerRecoil(type = 'heavy') {
     const unit = document.getElementById('main-unit');
-    if (unit) {
-        unit.classList.remove('recoil');
-        void unit.offsetWidth; 
-        unit.classList.add('recoil');
-    }
+    if (!unit) return;
+    unit.classList.remove('recoil', 'micro-recoil');
+    void unit.offsetWidth; 
+    unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil');
 }
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
@@ -105,7 +87,7 @@ function refreshDisplay() {
 function toggleHandset() {
     initAudioEngine();
     isOffHook = !isOffHook;
-    if (!isOffHook) triggerRecoil(); 
+    if (!isOffHook) triggerRecoil('heavy'); 
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
     else { if(f) f.classList.remove('up'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
@@ -113,6 +95,7 @@ function toggleHandset() {
 
 function press(key) {
     if (!isOffHook) return;
+    triggerRecoil('micro');
     playDialTone(key); 
     if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; }
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
@@ -148,6 +131,7 @@ function playTrack(num) {
 }
 
 function cycleVolume() { 
+    triggerRecoil('micro'); 
     volIndex = (volIndex + 1) % volLevels.length; 
     audio.volume = volLevels[volIndex]; 
     clickAudio.volume = volLevels[volIndex]; 
