@@ -8,10 +8,10 @@ clickAudio.crossOrigin = "anonymous";
 let mediaRecorder, audioChunks = [], isRecording = false, isReviewing = false, recordedBlob = null;
 let audioCtx, compressor, gainNode, source, cmdTimer = null;
 
-// DTMF Frequency Map for Dialing Tones
+// DTMF Frequency Map
 const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
-// --- 1. MOBILE AUDIO ENGINE WAKE-UP ---
+// --- 1. AUDIO ENGINE & MOBILE WAKE-UP ---
 function initAudioEngine() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -21,10 +21,7 @@ function initAudioEngine() {
         source.connect(gainNode); gainNode.connect(compressor); compressor.connect(audioCtx.destination);
         compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
     }
-    // Crucial for iOS/Android: Engine starts "suspended" until a touch event resumes it
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 }
 
 // --- 2. TONE GENERATORS ---
@@ -46,7 +43,6 @@ function playVolumeChirp(level) {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(800, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.05);
-    // Gets louder based on the volume level (0-3)
     const chirpVol = 0.05 * (level + 1); 
     g.gain.setValueAtTime(chirpVol, audioCtx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
@@ -63,7 +59,6 @@ function playVoicemailBeep() {
     beep.start(); beep.stop(audioCtx.currentTime + 0.5);
 }
 
-// --- 3. PHYSICAL RECOIL ---
 function triggerRecoil(type = 'heavy') {
     const unit = document.getElementById('main-unit');
     if (unit) {
@@ -73,7 +68,7 @@ function triggerRecoil(type = 'heavy') {
     }
 }
 
-// --- 4. RECORDING & VOICEMAIL LOGIC ---
+// --- 3. RECORDING & REVIEW LOGIC ---
 function startRecording() {
   updateLCD("VOICEMAIL SYSTEM", "WAIT FOR BEEP...", " ");
   setTimeout(() => {
@@ -102,26 +97,34 @@ function uploadToDrive(blob) {
   };
 }
 
-// --- 5. STATE MANAGEMENT ---
+// --- 4. STATE & UI CONFIG ---
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 2, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
-    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
+    en: { d: "DIAL ARTIST #", r: "DIAL 5 RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RAND 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
+    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:AZAR 6:> *:MENU", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
 const directory = { 1: { title: "DIAL TONE", artist: "SYSTEM" }, 2: { title: "Peacocks Patient", artist: "Alina Nguyen" }, 3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 4: { title: "Madeleine", artist: "Amelie Raoul" }, 5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 7: { title: "Whos Gonna Stand Up", artist: "BOLD NE (Neil Young)" }, 8: { title: "Alone.", artist: "Dos Mundos (Colton S.)" }, 9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 10: { title: "2+1", artist: "Dead Poets" }, 11: { title: "Childhood", artist: "Dereck Higgins" }, 12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J)" }, 13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 14: { title: "Love Surrounding", artist: "EDEM SOUL" }, 15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 16: { title: "May Queen", artist: "Hair Person" }, 17: { title: "Duniya", artist: "ID (ilahi & deLorenzo)" }, 18: { title: "Alignment", artist: "Jewel Rodgers & Serholt" }, 19: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 20: { title: "Racecar", artist: "Kevin Paradise" }, 21: { title: "My Father Apologizes", artist: "Kimberly Nguyen" }, 22: { title: "Gbandjo", artist: "Kusher Snazzy" }, 23: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 24: { title: "For You & Presence", artist: "Maritza N. Estrada" }, 25: { title: "Shimmering", artist: "Mesonjixx (Mary L)" }, 26: { title: "Amethyst", artist: "Melina" }, 27: { title: "Here We Are. Still.", artist: "Meredith Ann Fuller" }, 28: { title: "An Act of Naming", artist: "Natasha Kessler" }, 29: { title: "Critic", artist: "Ol Mo (Robin S Kessler)" }, 31: { title: "FOLK SONG 3", artist: "Otis Twelve (ft Dereck)" }, 32: { title: "Snow Song", artist: "Rayni Wekluk" }, 33: { title: "Unconditional Blues", artist: "Renzellous Brown" }, 34: { title: "Edgy Refugee", artist: "Rosine Selemani" }, 35: { title: "Slumber", artist: "Sam Brock" }, 36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe" }, 37: { title: "Folks", artist: "Sgt. Leisure" }, 38: { title: "FU Babies", artist: "Stacey Barelos" }, 39: { title: "To the Broken Few", artist: "Stolen Wolves (Inno)" }, 40: { title: "My Journey", artist: "Sulekha Ali" }, 41: { title: "A la", artist: "Sanchez/Bartolomei/Boyd" }, 42: { title: "THEY BITE", artist: "SWAMPD" }, 44: { title: "Hold On", artist: "The Mynabirds (Laura)" }, 45: { title: "Agnostic Maps", artist: "Todd Robinson" }, 46: { title: "Against Distance", artist: "Trey Moody" }, 47: { title: "All Nighter", artist: "UN-T.I.L." }, 48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 49: { title: "The Ocelot", artist: "Winston F. Schneider" } };
 
-// --- 6. DISPLAY ENGINE ---
+// --- 5. UPDATED DISPLAY ENGINE FOR PIXEL FONTS ---
 function writeLine(id, text, forceScroll = false) {
-    const el = document.getElementById(id); if (id === 'line1' || id === 'line4') { el.innerText = text; return; }
-    if (forceScroll || text.length > 20) el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'line1' || id === 'line4') { el.innerText = text; return; }
+    
+    // Pixel characters are wide. Limit to ~13 chars before scrolling.
+    const isTooLong = text.length > 13;
+    if (forceScroll || isTooLong) el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     else el.innerHTML = `<div>${text}</div>`;
 }
 
-function updateLCD(l2, l3, l4) { let f = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; writeLine('line2', l2, f); writeLine('line3', l3, f); writeLine('line4', l4); }
+function updateLCD(l2, l3, l4) { 
+    // Always enable scroll check for track info
+    let s = (currentTrackNum > 1);
+    writeLine('line2', l2, s); writeLine('line3', l3, s); writeLine('line4', l4); 
+}
 
 function refreshDisplay() {
     const lang = ui[currentLang];
@@ -129,10 +132,13 @@ function refreshDisplay() {
     else if (isDirectoryOpen) showDirectoryEntry();
     else if (isReviewing) updateLCD("1:LISTEN  #:SEND", "*:DISCARD", "REVIEW MESSAGE");
     else if (currentTrackNum === 1 && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
-    else if (currentTrackNum > 1 && inputString === "") { const t = directory[currentTrackNum]; updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); }
+    else if (currentTrackNum > 1 && inputString === "") { 
+        const t = directory[currentTrackNum]; 
+        updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); 
+    }
 }
 
-// --- 7. CORE INTERACTION ---
+// --- 6. CORE LOGIC ---
 function toggleHandset() {
     initAudioEngine(); isOffHook = !isOffHook;
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
@@ -157,14 +163,12 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
-
     if (isReviewing) {
         if (key === '1') { audio.src = URL.createObjectURL(recordedBlob); audio.play(); }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
         else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
         return;
     }
-
     if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
 
@@ -209,7 +213,6 @@ function playRandom() { let r; do { r = Math.floor(Math.random() * 48) + 2; } wh
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
-    // Amy Haddad 7.0 Volume Boost
     if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime);
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
@@ -221,10 +224,8 @@ function playTrack(num) {
 }
 
 function cycleVolume() { 
-    triggerRecoil('micro'); 
-    volIndex = (volIndex + 1) % volLevels.length; 
-    audio.volume = volLevels[volIndex]; 
-    playVolumeChirp(volIndex); 
+    triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; 
+    audio.volume = volLevels[volIndex]; playVolumeChirp(volIndex); 
     updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
 }
