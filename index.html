@@ -23,7 +23,7 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    position: fixed; /* Crucial for iOS to prevent drag-scrolling */
+    position: fixed; 
     background-color: #1a1a1a;
 }
 
@@ -33,7 +33,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* svh fits between the mobile search bar and bottom nav */
     height: 100svh; 
     width: 100vw;
     font-family: 'Courier New', Courier, monospace;
@@ -42,29 +41,30 @@ body {
 * { -webkit-tap-highlight-color: transparent !important; box-sizing: border-box; }
 
 .booth-frame {
-    padding: 15px;
+    padding: 8px;
     background: #000;
-    border-radius: 30px;
+    border-radius: 20px;
     box-shadow: inset 0 0 60px #000;
     display: flex;
     justify-content: center;
     align-items: center;
     border: 2px solid #222;
-    max-width: 95vw;
-    max-height: 95svh;
+    width: 98vw;
+    height: 98svh;
 }
 
 .payphone-container {
     background: var(--payphone-coral);
     position: relative;
-    padding: 2.5vh;
+    padding: 2vh 15px; /* Added horizontal padding */
     border-radius: 12px;
     border-top: 4px solid #ff9e7a;
     border-left: 6px solid #d45d30;
     border-right: 12px solid var(--coral-shadow);
     border-bottom: 16px solid #8c381c;
-    height: 82svh; /* Maintains original proportion */
-    aspect-ratio: 310 / 520;
+    height: 94%; /* Slightly enlarged */
+    width: 92vw; /* Widened for more room */
+    max-width: 400px; /* Prevents it from getting too wide on desktop */
     text-align: center;
     box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
     display: flex;
@@ -73,7 +73,7 @@ body {
     z-index: 10;
 }
 
-/* RESTORED BACKLIT ACRYLIC SIGN */
+/* SIGN */
 .phone-sign {
     background: var(--off-white);
     padding: 5px;
@@ -82,9 +82,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    overflow: hidden;
-    height: 10%; /* Restored size */
+    height: 10%;
     border: 1px solid rgba(0,0,0,0.3);
 }
 
@@ -92,33 +90,32 @@ body {
     color: var(--sign-pink);
     font-family: 'Arial Black', Gadget, sans-serif;
     font-weight: 950;
-    font-size: clamp(0.8rem, 4vw, 1.2rem);
+    font-size: clamp(0.7rem, 4.5vw, 1.3rem);
     width: 100%;
-    letter-spacing: -1.6px;
+    letter-spacing: -1.2px;
     -webkit-text-stroke: 1px var(--lcd-blue);
     text-shadow: 2px 2px 0px var(--lcd-blue);
     white-space: nowrap;
-    transform: scaleX(0.92);
 }
 
-/* RESTORED CENTERED LCD */
+/* LCD - Fixed height and centered */
 .lcd-display {
     background: #001a1d;
     border: 4px solid #222;
     padding: 10px;
-    height: 20%;
+    height: 22%;
     color: var(--lcd-blue);
     text-shadow: 0 0 10px var(--lcd-glow);
-    font-size: clamp(0.7rem, 3.5vw, 1.05rem);
+    font-size: clamp(0.7rem, 3.8vw, 1.1rem);
     font-weight: 900;
     overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    align-items: center; /* Forces all children to stay centered */
-    box-shadow: inset 6px 6px 15px rgba(0,0,0,0.9), inset -2px -2px 5px rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.5);
-    margin-bottom: 10px;
+    align-items: center;
+    box-shadow: inset 6px 6px 15px rgba(0,0,0,0.9);
+    margin-bottom: 5px;
 }
 
 /* CRADLE */
@@ -128,106 +125,94 @@ body {
     position: relative;
     padding: 8px;
     border-radius: 8px;
-    width: 95%;
-    align-self: center;
+    width: 100%;
     cursor: pointer;
     z-index: 20;
     border-top: 2px solid #fff;
     border-left: 2px solid #ddd;
     border-right: 4px solid #444;
     border-bottom: 6px solid #222;
-    box-shadow: 10px 15px 25px rgba(0,0,0,0.7);
 }
 
-.cradle-housing::after {
-    content:""; position:absolute; top:0; left:0; width:100%; height:100%;
-    background-image: var(--machined-lines); pointer-events:none; opacity: 0.4;
-}
-
-.cradle-3d { position: relative; width: 100%; height: 60px; perspective: 1000px; pointer-events: none; }
+.cradle-3d { position: relative; width: 100%; height: 55px; perspective: 1000px; }
 
 .cradle-base {
     position: absolute;
     width: 100%; height: 100%;
     background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%);
-    clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
-    box-shadow: inset 0 20px 40px black;
+    clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%);
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 5px;
+    justify-content: center;
+    padding-top: 8px;
 }
 
-.receiver-text {
-    color: #ddd;
-    font-weight: 950;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(255,255,255,0.4);
-    white-space: nowrap;
-}
+.receiver-text { color: #ddd; font-weight: 950; font-size: 0.75rem; }
 
 .flipper-container {
     position: absolute;
-    left: 40%; top: 25px; width: 20%; height: 30px;
+    left: 42%; top: 22px; width: 16%; height: 25px;
     transform-style: preserve-3d;
     transition: transform 0.5s ease;
     transform-origin: top center;
 }
 
 .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #222; }
-
 .flipper-container.up { transform: rotateX(-35deg); }
 
-/* CONTROLS */
+/* UPDATED CONTROLS - Grid ensures centering + volume lane */
 .controls-layout {
     display: grid;
-    grid-template-columns: 1fr 180px 1fr;
+    grid-template-columns: 50px 1fr 50px; /* Equal side columns keep the center column centered */
     align-items: center;
-    justify-content: center;
     width: 100%;
-    margin-bottom: 5px;
+    margin-top: 5px;
 }
 
-.keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keypad-container {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+}
+
+.keypad { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 8px;
+}
 
 button.key, .vol-btn {
     background: #dcdcdc;
     background-image: var(--metallic-base);
-    position: relative;
     color: #111;
     border: 1px solid #666;
-    width: 55px; height: 50px;
-    font-size: 1.4rem;
+    width: clamp(45px, 12vw, 55px); 
+    height: clamp(40px, 10vh, 50px);
+    font-size: 1.3rem;
     border-radius: 6px;
     cursor: pointer;
     box-shadow: 0 4px #222, inset 0 1px 2px white;
     font-weight: 900;
-    transition: transform 0.05s;
-    z-index: 30;
 }
 
 button.key:active, .vol-btn:active { transform: translateY(3px); box-shadow: 0 1px #222; }
 
-.vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 5px; }
-
-.vol-btn {
-    width: 42px; height: 42px;
-    font-size: 0.5rem;
+/* Volume button sits in the right-hand column */
+.vol-container {
+    grid-column: 3;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    padding-top: 10px; /* Push it down slightly to align with the middle row */
 }
 
-.recoil { animation: recoil-shake 0.15s cubic-bezier(.36,.07,.19,.97) both; }
-.micro-recoil { animation: micro-shake 0.08s linear both; }
+.vol-btn {
+    width: 42px; 
+    height: 42px;
+    font-size: 0.45rem;
+    line-height: 1.1;
+    padding: 2px;
+}
 
-@keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0); } 40%, 60% { transform: translate3d(2px, 1px, 0); } }
-@keyframes micro-shake { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(1px, 1px, 0); } }
-
-.nav-row { font-size: 1.05rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
+.nav-row { font-size: 0.95rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 </style>
 </head>
 <body>
@@ -253,21 +238,26 @@ button.key:active, .vol-btn:active { transform: translateY(3px); box-shadow: 0 1
             </div>
 
             <div class="controls-layout">
-                <div></div>
-                <div class="keypad">
-                    <button class="key" onclick="press('1')">1</button>
-                    <button class="key" onclick="press('2')">2</button>
-                    <button class="key" onclick="press('3')">3</button>
-                    <button class="key" onclick="press('4')">4</button>
-                    <button class="key" onclick="press('5')">5</button>
-                    <button class="key" onclick="press('6')">6</button>
-                    <button class="key" onclick="press('7')">7</button>
-                    <button class="key" onclick="press('8')">8</button>
-                    <button class="key" onclick="press('9')">9</button>
-                    <button class="key" onclick="press('*')">*</button>
-                    <button class="key" onclick="press('0')">0</button>
-                    <button class="key" onclick="press('#')">#</button>
+                <!-- Empty div for left spacer -->
+                <div style="width: 50px;"></div>
+                
+                <div class="keypad-container">
+                    <div class="keypad">
+                        <button class="key" onclick="press('1')">1</button>
+                        <button class="key" onclick="press('2')">2</button>
+                        <button class="key" onclick="press('3')">3</button>
+                        <button class="key" onclick="press('4')">4</button>
+                        <button class="key" onclick="press('5')">5</button>
+                        <button class="key" onclick="press('6')">6</button>
+                        <button class="key" onclick="press('7')">7</button>
+                        <button class="key" onclick="press('8')">8</button>
+                        <button class="key" onclick="press('9')">9</button>
+                        <button class="key" onclick="press('*')">*</button>
+                        <button class="key" onclick="press('0')">0</button>
+                        <button class="key" onclick="press('#')">#</button>
+                    </div>
                 </div>
+                
                 <div class="vol-container">
                     <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
                 </div>
