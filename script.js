@@ -14,7 +14,6 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
@@ -106,12 +105,9 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
-        if(f) f.classList.add('up'); 
-        isLanguageSelected = false; 
-        playTrack(100); 
+        if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); 
     } else {
-        if(f) f.classList.remove('up'); 
-        updateLCD("LEVANTE", "ON HOOK", " ");
+        if(f) f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
