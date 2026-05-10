@@ -24,7 +24,6 @@
             overflow: hidden; 
         }
 
-        /* POWDER-COATED CONTAINER */
         .payphone-container { 
             background: var(--payphone-coral); 
             background-image: url("https://transparenttextures.com");
@@ -40,7 +39,6 @@
             transform: scale(min(1, 0.95));
         }
 
-        /* LCD DISPLAY */
         .lcd-display { 
             background: #001a1d; 
             border: 8px solid #222; 
@@ -60,7 +58,6 @@
             border-radius: 4px;
         }
 
-        /* LCD SHIMMER */
         .lcd-display::before { 
             content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; 
             background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%); 
@@ -68,7 +65,6 @@
         }
         @keyframes shimmer { 0% { left: -150%; } 100% { left: 150%; } }
 
-        /* CRADLE HOUSING */
         .cradle-housing {
             background: var(--metallic); 
             padding: 15px 10px; 
@@ -111,7 +107,6 @@
             animation: silver-glow 3s infinite; 
         }
 
-        /* 3D FLIPPER */
         .flipper-container { 
             position: absolute; 
             left: 40%; 
@@ -131,7 +126,6 @@
         .flipper-bottom { height: 20px; transform: rotateX(-90deg) translateZ(35px); background: #777; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
-        /* KEYPAD LAYOUT */
         .controls-layout { 
             display: grid; 
             grid-template-columns: 1fr 240px 1fr; 
@@ -180,7 +174,6 @@
             justify-content: center; 
         }
 
-        /* ANIMATIONS */
         @keyframes silver-glow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 20px white; } }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(106%); } }
         @keyframes pulse-header { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -196,6 +189,17 @@
             color: var(--lcd-blue); 
             width: 100%; 
             text-align: center; 
+        }
+
+        /* --- MOBILE ADJUSTMENTS --- */
+        @media (max-width: 480px) {
+            .receiver-text { 
+                font-size: 0.95rem; /* Shrunk for mobile */
+                letter-spacing: 1px; /* Tighter spacing */
+            }
+            .cradle-base {
+                padding-top: 15px; /* Adjust vertical centering */
+            }
         }
     </style>
 </head>
