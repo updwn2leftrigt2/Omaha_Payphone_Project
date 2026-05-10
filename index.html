@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
     <style>
         :root { 
@@ -16,59 +16,44 @@
             --off-white: #fdfaf0;
         }
 
+        /* IOS ANTI-ZOOM FIXES */
+        * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        
         body { 
             background-color: #1a1a1a; 
             background-image: radial-gradient(#333 1px, transparent 1px);
             background-size: 30px 30px;
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100svh; /* Dynamic viewport height for mobile */
-            margin: 0; font-family: 'Courier New', Courier, monospace; 
+            min-height: 100svh; margin: 0; font-family: 'Courier New', Courier, monospace; 
             overflow: hidden; perspective: 1200px;
+            -webkit-text-size-adjust: 100%; /* Prevents text-zoom shifting */
         }
 
-        /* FLEXIBLE BOOTH FRAME */
         .booth-frame { 
-            padding: 20px;
-            background: #000; border-radius: 30px; 
+            padding: 20px; background: #000; border-radius: 30px; 
             box-shadow: inset 0 0 60px #000, 0 10px 40px rgba(0,0,0,0.8); 
             display: flex; justify-content: center; align-items: center; 
-            border: 2px solid #222; 
-            max-width: 95vw;
-            max-height: 95svh; /* Ensures frame fits screen */
+            border: 2px solid #222; max-width: 95vw; max-height: 95svh;
         }
 
-        /* AUTO-SCALING CONTAINER */
         .payphone-container { 
-            background: var(--payphone-coral); 
-            background-image: url("https://transparenttextures.com");
+            background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
             position: relative; padding: 25px; border-radius: 12px; 
             border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; 
             border-right: 12px solid var(--coral-shadow); border-bottom: 16px solid #8c381c;
-            width: 310px; text-align: center; 
-            box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
+            width: 310px; text-align: center; box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
             transform: rotateX(2deg) rotateY(-1deg);
             transition: transform 0.1s;
-            touch-action: none;
         }
 
         /* RECESSED SIGN */
         .phone-sign {
-            background: var(--off-white);
-            margin-bottom: 15px; padding: 5px; border-radius: 4px;
+            background: var(--off-white); margin-bottom: 15px; padding: 5px; border-radius: 4px;
             box-shadow: 0 0 20px var(--off-white), inset 4px 4px 10px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.8);
-            display: flex; justify-content: center; align-items: center;
-            position: relative; overflow: hidden; height: 48px; border: 1px solid rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; height: 48px; border: 1px solid rgba(0,0,0,0.3);
         }
         .phone-sign::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url("https://transparenttextures.com"); opacity: 0.12; pointer-events: none; mix-blend-mode: multiply; }
-
-        .sign-text {
-            color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif;
-            font-weight: 950; font-size: 1.2rem; width: 100%;
-            letter-spacing: -1.6px;
-            -webkit-text-stroke: 1px var(--lcd-blue);
-            text-shadow: 2px 2px 0px var(--lcd-blue), 0 0 10px rgba(0, 229, 255, 0.4);
-            z-index: 2; white-space: nowrap; transform: scaleX(0.92);
-        }
+        .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: 1.2rem; width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue), 0 0 10px rgba(0, 229, 255, 0.4); z-index: 2; white-space: nowrap; transform: scaleX(0.92); }
 
         .lcd-display { background: #001a1d; border: 8px solid #222; padding: 10px; height: 105px; margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); font-size: 1.05rem; font-weight: 900; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: space-around; box-shadow: inset 0 0 30px black; }
         .lcd-display::before { content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%); animation: shimmer 8s infinite; z-index: 5; pointer-events: none; }
@@ -93,7 +78,7 @@
             color: #111; border: 1px solid #666; width: 58px; height: 55px; 
             font-size: 1.5rem; border-radius: 6px; cursor: pointer; 
             box-shadow: 0 5px #222, inset 0 1px 2px white; font-weight: 900; 
-            transition: transform 0.05s; touch-action: manipulation;
+            transition: transform 0.05s;
         }
         button.key::after, .vol-btn::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity: 0.3; border-radius:6px; pointer-events:none; }
         button.key:active, .vol-btn:active { transform: translateY(4px); box-shadow: 0 1px #222; }
@@ -101,7 +86,6 @@
         .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 5px; }
         .vol-btn { width: 48px; height: 48px; font-size: 0.55rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-        /* RECOIL ENGINE */
         .recoil { animation: recoil-shake 0.15s cubic-bezier(.36,.07,.19,.97) both; }
         .micro-recoil { animation: micro-shake 0.08s linear both; }
         @keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0) rotateX(2deg); } 40%, 60% { transform: translate3d(2px, 1px, 0) rotateX(2deg); } }
@@ -113,10 +97,7 @@
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .nav-row { font-size: 0.9rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
-        /* MOBILE OPTIMIZATION: REMOVED NEGATIVE MARGINS */
-        @media (max-height: 700px) {
-            .payphone-container { transform: scale(0.8) rotateX(2deg); }
-        }
+        @media (max-height: 750px) { .payphone-container { transform: scale(0.8) rotateX(2deg); } }
         @media (max-width: 400px) {
             .payphone-container { transform: scale(0.85) rotateX(2deg); }
             .sign-text { font-size: 1.15rem; letter-spacing: -1.8px; }
