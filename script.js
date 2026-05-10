@@ -10,7 +10,13 @@ let audioChunks = [];
 let isRecording = false;
 let audioCtx, compressor, gainNode, source;
 
-const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
+// --- AUTHENTIC DTMF FREQUENCY PAIRS ---
+const dtmfFreqs = {
+    "1": [697, 1209], "2": [697, 1336], "3": [697, 1477],
+    "4": [770, 1209], "5": [770, 1336], "6": [770, 1477],
+    "7": [852, 1209], "8": [852, 1336], "9": [852, 1477],
+    "*": [941, 1209], "0": [941, 1336], "#": [941, 1477]
+};
 
 function initAudioEngine() {
     if (audioCtx) return;
@@ -26,7 +32,7 @@ function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
     const freqs = dtmfFreqs[digit]; if (!freqs) return;
     const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc1.frequency.value = freqs; osc2.frequency.value = freqs;
+    osc1.frequency.value = freqs[0]; osc2.frequency.value = freqs[1];
     g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc1.connect(g); osc2.connect(g); g.connect(audioCtx.destination);
     osc1.start(); osc2.start(); osc1.stop(audioCtx.currentTime + 0.2); osc2.stop(audioCtx.currentTime + 0.2);
@@ -64,7 +70,7 @@ function uploadToDrive(blob) {
   const reader = new FileReader();
   reader.readAsDataURL(blob);
   reader.onloadend = () => {
-    const base64data = reader.result.split(',')[1];
+    const base64data = reader.result.split(',');
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
@@ -93,13 +99,7 @@ function writeLine(id, text, forceScroll = false) {
 
 function updateLCD(l2, l3, l4) { let f = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; writeLine('line2', l2, f); writeLine('line3', l3, f); writeLine('line4', l4); }
 
-function refreshDisplay() {
-    const lang = ui[currentLang];
-    if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
-    else if (isDirectoryOpen) showDirectoryEntry();
-    else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr);
-    else { const t = directory[currentTrackNum]; updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); }
-}
+function refreshDisplay() { const lang = ui[currentLang]; if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE"); else if (isDirectoryOpen) showDirectoryEntry(); else if (currentTrackNum === 1) updateLCD(lang.d, lang.r, lang.dr); else { const t = directory[currentTrackNum]; updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); } }
 
 function toggleHandset() {
     initAudioEngine();
@@ -138,7 +138,7 @@ function press(key) {
         return;
     }
     if (key === '#') {
-        if (inputString === "402") { // TRIGGER FOR VOICEMAIL
+        if (inputString === "402") { 
             audio.pause();
             startRecording();
         } else if (inputString === "00") {
