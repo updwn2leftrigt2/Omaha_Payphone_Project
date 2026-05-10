@@ -18,7 +18,7 @@ const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
-    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nav: "4:< 5:AZAR 6:> *:MENU", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
+    es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
 const directory = {
@@ -74,7 +74,7 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') return;
-    if (id === 'line4') { el.innerText = text; return; }
+    if (id === 'line4') { el.innerHTML = `<div>${text}</div>`; return; }
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
