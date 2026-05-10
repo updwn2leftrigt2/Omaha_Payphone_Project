@@ -8,11 +8,12 @@ clickAudio.crossOrigin = "anonymous";
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
-let isReviewing = false; // New state for the Review Menu
+let isReviewing = false;
 let recordedBlob = null;
 let audioCtx, compressor, gainNode, source;
 
-const dtmfFreqs = { "1":, "2":, "3":, "4":, "5":, "6":, "7":, "8":, "9":, "*":, "0":, "#": };
+// DTMF Frequency Map
+const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
 function initAudioEngine() {
     if (audioCtx) return;
@@ -26,12 +27,12 @@ function initAudioEngine() {
 
 function playDialTone(digit) {
     if (!audioCtx) initAudioEngine();
-    const freqs = dtmfFreqs[digit]; if (!freqs) return;
-    const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc1.frequency.value = freqs; osc2.frequency.value = freqs;
+    const freq = dtmfFreqs[digit]; if (!freq) return;
+    const osc1 = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc1.frequency.value = freq;
     g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-    osc1.connect(g); osc2.connect(g); g.connect(audioCtx.destination);
-    osc1.start(); osc2.start(); osc1.stop(audioCtx.currentTime + 0.2); osc2.stop(audioCtx.currentTime + 0.2);
+    osc1.connect(g); g.connect(audioCtx.destination);
+    osc1.start(); osc1.stop(audioCtx.currentTime + 0.2);
 }
 
 function triggerRecoil(type = 'heavy') {
@@ -39,7 +40,6 @@ function triggerRecoil(type = 'heavy') {
     if (unit) { unit.classList.remove('recoil', 'micro-recoil'); void unit.offsetWidth; unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil'); }
 }
 
-// --- UPDATED RECORDING & REVIEW LOGIC ---
 function startRecording() {
   updateLCD("VOICEMAIL SYSTEM", "STARTING RECORDER", "WAIT...");
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -131,25 +131,15 @@ function press(key) {
         return;
     }
 
-    // --- REVIEW MENU LOGIC ---
     if (isReviewing) {
-        if (key === '1') { // Listen to recording
-            const url = URL.createObjectURL(recordedBlob);
-            audio.src = url; audio.play();
-        } else if (key === '#') { // Send to Drive
-            isReviewing = false; uploadToDrive(recordedBlob);
-        } else if (key === '*') { // Discard
-            isReviewing = false; recordedBlob = null; playTrack(1);
-        }
+        if (key === '1') { const url = URL.createObjectURL(recordedBlob); audio.src = url; audio.play(); }
+        else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
+        else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
         return;
     }
 
-    // --- RECORDING STOP LOGIC ---
     if (isRecording) {
-        if (key === '#') {
-            isRecording = false;
-            mediaRecorder.stop();
-        }
+        if (key === '#') { isRecording = false; mediaRecorder.stop(); }
         return;
     }
     
@@ -190,6 +180,10 @@ function playTrack(num) {
     if (audioCtx) { gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); }
     clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
     refreshDisplay();
-    setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
+    setTimeout(() => {
+        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        audio.load();
+        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
+    }, 400);
 }
 function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
