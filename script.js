@@ -16,7 +16,6 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
-// UI/Directory same as before...
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dr: "DIAL 00# FOR DIR", nv: "4<PREV|5:RND|6>NEXT", dn: "2^UP/8vDN/#PLAY", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dr: "00# PARA DIRECTORIO", nv: "4<ANT|5:AZAR|6>SIG", dn: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
@@ -102,11 +101,13 @@ function refreshDisplay() {
 
 function toggleHandset() {
     isOffHook = !isOffHook;
-    const btn = document.getElementById('handset-toggle');
+    const flipper = document.getElementById('handset-flipper');
     if (isOffHook) {
-        btn.classList.add('off-hook'); isLanguageSelected = false; playTrack(100); 
+        flipper.classList.add('up');
+        isLanguageSelected = false; playTrack(100); 
     } else {
-        btn.classList.remove('off-hook'); updateLCD("LEVANTE", "ON HOOK", " ");
+        flipper.classList.remove('up');
+        updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -170,7 +171,8 @@ function playTrack(num) {
     clickAudio.play().catch(() => {});
     refreshDisplay();
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file;
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
