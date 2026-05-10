@@ -18,8 +18,22 @@ const volLevels = [0.25, 0.50, 0.75, 1.0];
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
-    en: { rnd: "DIAL 5 FOR RANDOM", dir: "DIAL 00# FOR DIRECTORY", dial: "OR DIAL ARTIST #", nav: "4< PREV | 5:RND | 6> NEXT", dNav: "2^UP/8vDN/#PLAY", inv: "INVALID" },
-    es: { rnd: "MARQUE 5 AL AZAR", dir: "00# PARA DIRECTORIO", dial: "O MARQUE NUMERO", nav: "4< ANT | 5:AZAR | 6> SIG", dNav: "2^SUB/8vBAJ/#TOCAR", inv: "INVALIDO" }
+    en: { 
+        dial: "DIAL ARTIST #", 
+        rnd: "DIAL 5 FOR RANDOM", 
+        dir: "DIAL 00# FOR DIRECTORY", 
+        nav: "4< PREV | 5:RND | 6> NEXT", 
+        dNav: "2^UP/8vDN/#PLAY", 
+        inv: "INVALID" 
+    },
+    es: { 
+        dial: "MARQUE NUMERO", 
+        rnd: "MARQUE 5 AL AZAR", 
+        dir: "00# PARA DIRECTORIO", 
+        nav: "4< ANT | 5:AZAR | 6> SIG", 
+        dNav: "2^SUB/8vBAJ/#TOCAR", 
+        inv: "INVALIDO" 
+    }
 };
 
 const directory = {
@@ -74,18 +88,28 @@ const directory = {
 
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
-    if (id === 'line1') return; // Stationary pulsing header
-    if (id === 'line4') { el.innerText = text; return; }
+    if (id === 'line1') return; // Handled by pulsing CSS
+    
+    // Line 4 is always static and centered
+    if (id === 'line4') {
+        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
+        return;
+    }
+
+    // Artist/Track lines scroll only if long OR forced by playback sync
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
-        el.innerHTML = `<div>${text}</div>`;
+        el.innerHTML = `<div style="width:100%; text-align:center;">${text}</div>`;
     }
 }
 
 function updateLCD(l2, l3, l4) {
-    // Disable scroll for Main Menu (Track 1)
-    let force = (currentTrackNum !== 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false;
+    // Determine if we should allow scrolling
+    // Main Menu (currentTrackNum === 1) is NEVER scrolled
+    let allowScroll = (currentTrackNum > 1 && !isDirectoryOpen);
+    let force = allowScroll ? (l2.length > 20 || l3.length > 20) : false;
+    
     writeLine('line2', l2, force);
     writeLine('line3', l3, force);
     writeLine('line4', l4);
@@ -93,10 +117,14 @@ function updateLCD(l2, l3, l4) {
 
 function refreshDisplay() {
     const lang = ui[currentLang];
-    if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
-    else if (isDirectoryOpen) showDirectoryEntry();
-    else if (currentTrackNum === 1) updateLCD(lang.rnd, lang.dir, lang.dial);
-    else {
+    if (!isLanguageSelected) {
+        updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
+    } else if (isDirectoryOpen) {
+        showDirectoryEntry();
+    } else if (currentTrackNum === 1) {
+        // REQUESTED ORDER: Artist #, Dial 5, Dial 00#
+        updateLCD(lang.dial, lang.rnd, lang.dir);
+    } else {
         const t = directory[currentTrackNum];
         updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav);
     }
@@ -147,8 +175,8 @@ function press(key) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49);
-                    else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2);
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
@@ -159,7 +187,8 @@ function press(key) {
 
 function showDirectoryEntry() {
     const e = directory[directoryIndex];
-    updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dNav);
+    const displayNum = directoryIndex.toString().padStart(2, '0');
+    updateLCD(`${displayNum} ${e.artist}`, e.title, ui[currentLang].dNav);
 }
 
 function playRandom() {
@@ -170,11 +199,15 @@ function playRandom() {
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
     currentTrackNum = num; audio.pause();
+    
+    // PLAY CLICK USING DIRECT SERVER PATH
     clickAudio.src = "https://archive.org";
     clickAudio.play().catch(() => {});
+    
     refreshDisplay();
     setTimeout(() => {
-        audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3";
+        let file = num.toString().padStart(4, '0') + ".mp3";
+        audio.src = baseUrl + file; // DIRECT SERVER PATH
         audio.load();
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
@@ -183,6 +216,6 @@ function playTrack(num) {
 function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
     audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex];
-    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " ");
+    writeLine('line2', "VOLUME: " + "I".repeat(volIndex + 1));
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
