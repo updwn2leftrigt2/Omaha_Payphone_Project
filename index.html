@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
-    <!-- IMPORT CALCULATOR STYLE FONT -->
+    <!-- 8-BIT PIXEL FONT -->
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root { 
@@ -52,26 +52,31 @@
         }
         .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: clamp(0.8rem, 4vw, 1.2rem); width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue); white-space: nowrap; transform: scaleX(0.92); }
 
-        /* HIGH-DEPTH RECESSED LCD SCREEN */
+        /* DEEP 8-BIT LCD SCREEN */
         .lcd-display { 
             background: #001a1d; 
-            /* Outer rim creates the "thickness" of the coral case */
-            border: 2px solid #333;
-            padding: 10px; height: 22%; 
+            border: 3px solid #111;
+            padding: 12px 10px; height: 24%; 
             color: var(--lcd-blue); 
-            text-shadow: 0 0 10px var(--lcd-glow); 
-            font-family: 'VT323', monospace; /* NEW CALCULATOR FONT */
-            font-size: 1.4rem; 
-            font-weight: normal; 
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5), 0 0 10px var(--lcd-glow); 
+            font-family: 'Press Start 2P', cursive; /* PIXEL FONT */
+            font-size: 0.65rem; /* Shrinking to account for wide blocky letters */
+            line-height: 1.6;
             overflow: hidden; position: relative; display: flex; 
             flex-direction: column; justify-content: space-around; 
             
-            /* THE "HOLE" EFFECT */
             box-shadow: 
-                inset 8px 10px 20px rgba(0,0,0,1),   /* Heavy top-left shadow */
-                inset -2px -2px 8px rgba(255,255,255,0.2), /* Bottom-right highlight rim */
-                0 4px 0 #ff9e7a; /* Highlight on the coral edge below the cutout */
+                inset 10px 12px 20px rgba(0,0,0,1),   
+                inset -3px -3px 10px rgba(255,255,255,0.15),
+                0 4px 0 #ff9e7a; 
             margin-bottom: 10px;
+        }
+
+        /* Glass Glare Overlay */
+        .lcd-display::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+            pointer-events: none; z-index: 10;
         }
 
         .lcd-display::before { 
@@ -84,10 +89,8 @@
             background: #e0e0e0; background-image: var(--metallic-base); 
             position: relative; padding: 8px; border-radius: 8px; 
             width: 95%; align-self: center; cursor: pointer; z-index: 20;
-            border-top: 2px solid #fff;
-            border-left: 2px solid #ddd;
-            border-right: 4px solid #444;
-            border-bottom: 6px solid #222;
+            border-top: 2px solid #fff; border-left: 2px solid #ddd;
+            border-right: 4px solid #444; border-bottom: 6px solid #222;
             box-shadow: 10px 15px 25px rgba(0,0,0,0.7);
         }
         .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.4; }
@@ -117,7 +120,11 @@
         .micro-recoil { animation: micro-shake 0.08s linear both; }
         @keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0); } 40%, 60% { transform: translate3d(2px, 1px, 0); } }
         @keyframes micro-shake { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(1px, 1px, 0); } }
-        .nav-row { font-size: 1.1rem; font-weight: bold; color: var(--lcd-blue); width: 100%; text-align: center; font-family: 'VT323', monospace; }
+        
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
+        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
+        @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .nav-row { font-size: 0.55rem; color: var(--lcd-blue); width: 100%; text-align: center; font-family: 'Press Start 2P', cursive; }
     </style>
 </head>
 <body>
@@ -125,7 +132,7 @@
         <div class="payphone-container" id="main-unit">
             <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
             <div class="lcd-display" id="lcd">
-                <div id="line1" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+                <div id="line1" style="animation: silver-glow 3s infinite; font-size: 0.5rem;">OMAHA PAYPHONE PROJECT</div>
                 <div id="line2">LIFT RECEIVER</div>
                 <div id="line3">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
