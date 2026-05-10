@@ -17,31 +17,12 @@ function initAudioEngine() {
     compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
 }
 
-// --- UNIVERSAL HAPTIC ENGINE (iOS & Android) ---
-function hapticFeedback(type = 'medium') {
-    // 1. Android / Standard Workaround
-    if ("vibrate" in navigator) {
-        navigator.vibrate(type === 'heavy' ? 35 : 15);
-    }
-    
-    // 2. iOS Taptic Engine Workaround (iOS 10+)
-    // We trigger a "Selection Changed" or "Light Impact" system event
-    try {
-        const hapticActuator = window.navigator.vibrate || window.navigator.webkitVibrate;
-        if (!hapticActuator) {
-            // If standard vibrate fails, we use the 'Selection' trick
-            // This is the only way to tick the iOS Taptic Engine in Safari
-            const input = document.createElement('input');
-            input.type = 'date'; // System components often trigger a haptic 'click' on iOS
-            input.style.display = 'none';
-            document.body.appendChild(input);
-            input.focus();
-            input.click();
-            document.body.removeChild(input);
-        }
-    } catch (e) {
-        console.log("Haptics not supported on this device");
-    }
+// --- VISUAL HAPTIC TRIGGER ---
+function triggerRecoil() {
+    const unit = document.getElementById('main-unit');
+    unit.classList.remove('recoil');
+    void unit.offsetWidth; // Reset animation
+    unit.classList.add('recoil');
 }
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
@@ -77,9 +58,9 @@ function refreshDisplay() {
 }
 
 function toggleHandset() {
-    hapticFeedback('heavy');
     initAudioEngine();
     isOffHook = !isOffHook;
+    if (!isOffHook) triggerRecoil(); // Physical jolt when hanging up
     const f = document.getElementById('handset-flipper');
     if (isOffHook) { if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); }
     else { if(f) f.classList.remove('up'); updateLCD("LIFT RECEIVER", "LEVANTE EL RECEPTOR", " "); audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = ""; }
@@ -87,7 +68,6 @@ function toggleHandset() {
 
 function press(key) {
     if (!isOffHook) return;
-    hapticFeedback('medium');
     if (!isLanguageSelected) { if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); } else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); } return; }
     if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
@@ -121,11 +101,4 @@ function playTrack(num) {
     setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
 }
 
-function cycleVolume() { 
-    hapticFeedback('medium'); 
-    volIndex = (volIndex + 1) % volLevels.length; 
-    audio.volume = volLevels[volIndex]; 
-    clickAudio.volume = volLevels[volIndex]; 
-    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
-    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
-}
+function cycleVolume() { volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
