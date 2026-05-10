@@ -14,7 +14,6 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
@@ -75,12 +74,7 @@ const directory = {
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
     if (id === 'line1') return;
-    
-    if (id === 'line4') {
-        el.innerText = text;
-        return;
-    }
-
+    if (id === 'line4') { el.innerText = text; return; }
     if (forceScroll || text.length > 20) {
         el.innerHTML = `<div class="scroll-wrap">${text}</div>`;
     } else {
@@ -111,12 +105,9 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
-        if(f) f.classList.add('up'); 
-        isLanguageSelected = false; 
-        playTrack(100); 
+        if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); 
     } else {
-        if(f) f.classList.remove('up'); 
-        updateLCD("LEVANTE", "ON HOOK", " ");
+        if(f) f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -175,26 +166,21 @@ function playRandom() {
 
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
-    currentTrackNum = num; 
-    audio.pause();
-    
-    // Fixed clickAudio path
+    currentTrackNum = num; audio.pause();
     clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(() => {});
-    
     refreshDisplay();
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
         audio.load();
-        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }).catch(e => console.error("Playback failed", e));
+        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
 }
 
 function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
-    audio.volume = volLevels[volIndex]; 
-    clickAudio.volume = volLevels[volIndex];
+    audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex];
     updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " ");
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
