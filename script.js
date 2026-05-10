@@ -49,39 +49,44 @@ function startRecording() {
     updateLCD("ERROR", "MIC NOT SUPPORTED", " ");
     return;
   }
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    isRecording = true;
-    mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
-    mediaRecorder.onstop = () => {
-      updateLCD("RECORDING FINISHED", "UPLOADING...", " ");
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      uploadToDrive(audioBlob);
-    };
-    mediaRecorder.start();
-    updateLCD("RECORDING...", "HANG UP TO SEND", "● REC");
-  }).catch(err => {
-    updateLCD("MIC ERROR", "CHECK PERMISSIONS", " ");
-  });
+  // Visual Prompt before recording starts
+  updateLCD("VOICEMAIL SYSTEM", "STARTING RECORDER", "WAIT...");
+  
+  setTimeout(() => {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        isRecording = true;
+        mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
+        mediaRecorder.onstop = () => {
+          updateLCD("MESSAGE SAVED", "UPLOADING...", "THANK YOU");
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          uploadToDrive(audioBlob);
+        };
+        mediaRecorder.start();
+        updateLCD("LEAVE MESSAGE", "HANG UP TO SEND", "● RECORDING");
+      }).catch(err => {
+        updateLCD("MIC ERROR", "CHECK PERMISSIONS", " ");
+      });
+  }, 1000);
 }
 
 function uploadToDrive(blob) {
   const reader = new FileReader();
   reader.readAsDataURL(blob);
   reader.onloadend = () => {
-    const base64data = reader.result.split(',');
+    const base64data = reader.result.split(',')[1];
     fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "data=" + encodeURIComponent(base64data)
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "data=" + encodeURIComponent(base64data)
     });
   };
 }
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
-let currentTrackNum = 1, directoryIndex = 2, volIndex = 1, cmdTimer = null;
+let currentTrackNum = 1, directoryIndex = 2, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
@@ -129,14 +134,22 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
-    if (key === '*') { isDirectoryOpen = false; inputString = ""; playTrack(1); return; }
-    if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
+    
+    // NAVIGATION SHORTCUTS (Only if not typing a number)
+    if (inputString === "") {
+        if (key === '*') { isDirectoryOpen = false; playTrack(1); return; }
+        if (key === '5') { playRandom(); return; }
+        if (key === '4' && currentTrackNum > 1) { playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); return; }
+        if (key === '6' && currentTrackNum > 1) { playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); return; }
+    }
+
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex--; showDirectoryEntry(); }
-        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; if (directoryIndex === 30 || directoryIndex === 43) directoryIndex++; showDirectoryEntry(); }
+        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
+        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         return;
     }
+
     if (key === '#') {
         if (inputString === "402") { 
             audio.pause();
@@ -151,18 +164,7 @@ function press(key) {
         inputString = "";
     } else {
         inputString += key;
-        updateLCD("DIALING...", inputString, " ");
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
-            cmdTimer = setTimeout(() => {
-                if (inputString === key) {
-                    if (key === '5') playRandom();
-                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
-                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
-                    inputString = "";
-                }
-                cmdTimer = null;
-            }, 1000);
-        }
+        updateLCD("DIALING...", inputString, "PRESS # TO CALL");
     }
 }
 
