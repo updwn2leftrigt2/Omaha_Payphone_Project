@@ -29,7 +29,7 @@
             box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
 
-        /* SILVER PLATE HOUSING */
+        /* METALLIC PLATE */
         .cradle-housing {
             background: var(--metallic); background-size: 200%;
             padding: 12px; border-radius: 8px; border: 2px solid #555;
@@ -37,72 +37,60 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 1px 2px white;
         }
 
-        /* RECESSED TRAPEZOID (THE "SHADOW") */
+        /* RECESSED TRAPEZOID WITH GRADIENT SHADOW (Wide Top) */
         .cradle-3d {
-            position: relative; width: 230px; height: 85px; perspective: 1000px; cursor: pointer;
+            position: relative; width: 240px; height: 100px; perspective: 1000px; cursor: pointer;
         }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
-            background: #111; /* Recessed dark color */
+            background: linear-gradient(to bottom, #000 0%, #222 50%, #444 100%);
             clip-path: polygon(0% 0%, 100% 0%, 75% 100%, 25% 100%);
-            box-shadow: inset 0 10px 20px black; /* Creates the "hole" look */
+            box-shadow: inset 0 15px 25px black;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 8px;
+            padding-top: 10px;
         }
         
-        /* BOLDER LIGHT CONTRAST TEXT */
+        /* BOLD GREY GLOWING TEXT */
         .receiver-text {
-            color: var(--lcd-blue); font-weight: 900; font-size: 0.85rem; letter-spacing: 2px;
-            text-shadow: 0 0 8px var(--lcd-glow);
-            animation: receiver-pulse 2s infinite;
+            color: #ddd; font-weight: 950; font-size: 1.1rem; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.4);
+            animation: silver-glow 3s infinite;
         }
+        @keyframes silver-glow { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; text-shadow: 0 0 15px white; } }
 
-        /* HEX FLIPPER */
+        /* HEX FLIPPER - Hinged at Narrow Bottom */
         .flipper-box {
-            position: absolute; left: 40%; top: 28px; width: 20%; height: 45px;
+            position: absolute; left: 40%; bottom: 10px; width: 20%; height: 50px;
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: top center;
+            transform-origin: bottom center;
         }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic); border: 1px solid #111; }
         .flipper-front  { transform: translateZ(12px); }
         .flipper-back   { transform: rotateY(180deg) translateZ(12px); }
         .flipper-right  { width: 24px; transform: rotateY(90deg) translateZ(23px); left: 50%; margin-left: -12px;}
         .flipper-left   { width: 24px; transform: rotateY(-90deg) translateZ(23px); left: 50%; margin-left: -12px;}
-        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(33px); }
+        .flipper-top    { height: 24px; transform: rotateX(90deg) translateZ(35px); }
         
-        .flipper-box.up { transform: rotateX(-30deg); }
+        .flipper-box.up { transform: rotateX(35deg); }
 
-        @keyframes receiver-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 15px var(--lcd-glow); } }
-        @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(108%); } }
-
+        @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(105%); } }
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
         .nav-row { font-size: 1.05rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
         .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
         .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        
-        button.key { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 72px; height: 68px; 
-            font-size: 1.9rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold;
-            touch-action: manipulation;
-        }
+        button.key { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 72px; height: 68px; font-size: 1.9rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold; touch-action: manipulation; }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
-
-        .vol-btn { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 58px; height: 58px; 
-            border-radius: 8px; font-size: 0.65rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .vol-btn { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 58px; height: 58px; border-radius: 8px; font-size: 0.65rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 <div class="payphone-container">
     <div class="lcd-display" id="lcd">
-        <div id="line1" class="line-container" style="animation: receiver-pulse 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+        <div id="line1" class="line-container" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
         <div id="line4" class="nav-row">&nbsp;</div>
@@ -118,7 +106,7 @@
                 <div class="flipper-face flipper-back"></div>
                 <div class="flipper-face flipper-right"></div>
                 <div class="flipper-face flipper-left"></div>
-                <div class="flipper-face flipper-bottom"></div>
+                <div class="flipper-face flipper-top"></div>
             </div>
         </div>
     </div>
