@@ -12,46 +12,72 @@
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
         body { background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        .payphone-container { background: var(--payphone-coral); background-image: url("https://transparenttextures.com"); padding: 20px; border-radius: 20px; border: 6px solid #d45d30; width: 95vw; max-width: 380px; text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,1); transform: scale(0.9); }
+        
+        .payphone-container { 
+            background: var(--payphone-coral); background-image: url("https://transparenttextures.com"); 
+            padding: 20px; border-radius: 20px; border: 6px solid #d45d30; width: 95vw; max-width: 380px; 
+            text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,1); transform: scale(0.95);
+        }
         
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
-            margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.05rem; font-weight: bold; overflow: hidden; position: relative; 
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 125px; 
+            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1.15rem; /* Larger Font */
+            font-weight: bold; overflow: hidden; position: relative; 
             display: flex; flex-direction: column; justify-content: space-around; 
             box-shadow: inset 0 0 30px black; 
         }
         
-        /* Pulse & Shimmer */
         .lcd-display::before { content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent); animation: shimmer-fast 8s infinite; z-index: 5; pointer-events: none; }
         @keyframes shimmer-fast { 0% { left: -150%; } 100% { left: 150%; } }
         .pulsing-header { animation: pulse-header 4s ease-in-out infinite; }
         @keyframes pulse-header { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
-        /* V-Cradle */
         .cradle-3d { position: relative; width: 180px; height: 80px; margin: 0 auto 20px; perspective: 600px; }
         .cradle-base { position: absolute; width: 100%; height: 100%; background: var(--metallic); background-size: 200%; clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%); border: 1px solid #333; box-shadow: 0 10px 15px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: rgba(0,0,0,0.4); font-weight: 900; letter-spacing: 2px; }
         .flipper { position: absolute; left: 42%; top: 0; width: 16%; height: 45px; background: var(--metallic); background-size: 200%; border: 1px solid #444; border-radius: 2px; transition: transform 0.4s ease; transform-origin: top; z-index: 10; }
         .flipper.up { transform: rotateX(-110deg); filter: brightness(1.1); }
 
-        /* Scrolling Containers */
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* STATIONARY NAV ROW */
-        .nav-row { 
-            width: 100%; height: 1.2em; display: flex; justify-content: center; align-items: center;
-            font-size: 0.75rem; letter-spacing: -0.2px; opacity: 0.95; color: var(--lcd-blue);
-            border-top: 1px solid rgba(0, 229, 255, 0.1); padding-top: 2px;
+        .nav-row { width: 100%; height: 1.2em; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; letter-spacing: -0.2px; color: var(--lcd-blue); }
+
+        /* BALANCED GRID LAYOUT */
+        .controls-layout {
+            display: grid;
+            grid-template-columns: 1fr 240px 1fr; /* Keypad is fixed width in center */
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Keys */
-        .controls-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 20px; position: relative; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        button.key { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 68px; height: 62px; font-size: 1.7rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px rgba(255,255,255,0.5); font-weight: bold; touch-action: manipulation; }
+        .keypad { 
+            grid-column: 2; /* Forces keypad to center column */
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+        }
+
+        button.key { 
+            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; 
+            width: 70px; height: 65px; font-size: 1.8rem; border-radius: 8px; cursor: pointer; 
+            box-shadow: 0 5px #333, inset 0 1px 2px rgba(255,255,255,0.5); font-weight: bold; 
+            touch-action: manipulation;
+        }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
-        .vol-btn { background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 55px; height: 55px; border-radius: 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px rgba(255,255,255,0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: manipulation; }
+
+        .vol-container { 
+            grid-column: 3; /* Places Vol in the right column */
+            display: flex; justify-content: flex-start; padding-left: 10px;
+        }
+
+        .vol-btn { 
+            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; 
+            width: 55px; height: 55px; border-radius: 8px; font-size: 0.65rem; font-weight: bold; 
+            box-shadow: 0 5px #333; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; touch-action: manipulation;
+        }
     </style>
 </head>
 <body>
@@ -66,7 +92,8 @@
         <div class="cradle-base">RECEIVER</div>
         <div id="handset-flipper" class="flipper"></div>
     </div>
-    <div class="controls-wrapper">
+    <div class="controls-layout">
+        <div></div> <!-- Empty left column for balance -->
         <div class="keypad">
             <button class="key" onclick="press('1')">1</button>
             <button class="key" onclick="press('2')">2</button>
@@ -81,7 +108,9 @@
             <button class="key" onclick="press('0')">0</button>
             <button class="key" onclick="press('#')">#</button>
         </div>
-        <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
+        <div class="vol-container">
+            <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
+        </div>
     </div>
 </div>
 <script src="script.js"></script>
