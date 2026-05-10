@@ -30,6 +30,26 @@ function playDialTone(digit) {
     osc.start(); osc.stop(audioCtx.currentTime + 0.2);
 }
 
+// --- NEW SYNTHESIZED VOLUME CHIRP ---
+function playVolumeChirp(currentVolLevel) {
+    if (!audioCtx) initAudioEngine();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    // Frequency sweep from 800Hz down to 400Hz in 50ms for a "click" feel
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.05);
+    
+    // Gain matches the current volume index (gets louder with each press)
+    const chirpVolume = 0.05 * (currentVolLevel + 1); 
+    g.gain.setValueAtTime(chirpVolume, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+}
+
 function playVoicemailBeep() {
     const beep = audioCtx.createOscillator(), g = audioCtx.createGain();
     beep.frequency.setValueAtTime(1000, audioCtx.currentTime);
@@ -123,19 +143,14 @@ function press(key) {
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
         return;
     }
-
     if (isReviewing) {
         if (key === '1') { audio.src = URL.createObjectURL(recordedBlob); audio.play(); }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
         else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
         return;
     }
-
     if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
-
-    // Clear any pending shortcut if a second digit is pressed
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
-
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? (directoryIndex-1 === 30 || directoryIndex-1 === 43 ? directoryIndex-2 : directoryIndex-1) : 49; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? (directoryIndex+1 === 30 || directoryIndex+1 === 43 ? directoryIndex+2 : directoryIndex+1) : 2; showDirectoryEntry(); }
@@ -143,7 +158,6 @@ function press(key) {
         else if (key === '*') { isDirectoryOpen = false; playTrack(1); }
         return;
     }
-
     if (key === '#') {
         if (inputString === "402") { audio.pause(); startRecording(); }
         else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); }
@@ -158,8 +172,6 @@ function press(key) {
     } else {
         inputString += key;
         updateLCD("DIALING...", inputString, "PRESS # TO CALL");
-
-        // Short-cut logic for 4, 5, 6
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
@@ -187,4 +199,16 @@ function playTrack(num) {
         audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
     }, 400);
 }
-function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex]; updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+
+// --- UPDATED CYCLE VOLUME ---
+function cycleVolume() { 
+    triggerRecoil('micro'); 
+    volIndex = (volIndex + 1) % volLevels.length; 
+    audio.volume = volLevels[volIndex]; 
+    
+    // Play the custom chirp and pass the current index to set its loudness
+    playVolumeChirp(volIndex); 
+
+    updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); 
+    setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); 
+}
