@@ -14,6 +14,7 @@ let volIndex = 1;
 let cmdTimer = null; 
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
+// --- FULL DIRECT SERVER URL ---
 const baseUrl = "https://ia902903.us.archive.org/22/items/omaha_payphone_project_playlist0526/mp3/";
 
 const ui = {
@@ -73,9 +74,8 @@ const directory = {
 
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id);
-    if (id === 'line1') return; // Handled by pulsing header class
+    if (id === 'line1') return;
     
-    // Line 4 is ALWAYS stationary
     if (id === 'line4') {
         el.innerText = text;
         return;
@@ -111,9 +111,12 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
-        f.classList.add('up'); isLanguageSelected = false; playTrack(100); 
+        if(f) f.classList.add('up'); 
+        isLanguageSelected = false; 
+        playTrack(100); 
     } else {
-        f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " ");
+        if(f) f.classList.remove('up'); 
+        updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
@@ -146,12 +149,12 @@ function press(key) {
     } else {
         inputString += key;
         updateLCD("DIALING...", inputString, " ");
-        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) {
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6') && currentTrackNum > 1) {
             cmdTimer = setTimeout(() => {
                 if (inputString === key) {
                     if (key === '5') playRandom();
-                    else if (key === '4' && currentTrackNum > 1) playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
-                    else if (key === '6' && currentTrackNum > 1) playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
+                    else if (key === '4') playTrack(currentTrackNum > 2 ? (currentTrackNum-1 === 30 || currentTrackNum-1 === 43 ? currentTrackNum-2 : currentTrackNum-1) : 49);
+                    else if (key === '6') playTrack(currentTrackNum < 49 ? (currentTrackNum+1 === 30 || currentTrackNum+1 === 43 ? currentTrackNum+2 : currentTrackNum+1) : 2);
                     inputString = "";
                 }
                 cmdTimer = null;
@@ -172,21 +175,26 @@ function playRandom() {
 
 function playTrack(num) {
     if (num === 30 || num === 43) { updateLCD("COMING SOON", "OMAHA PAYPHONE", " "); return; }
-    currentTrackNum = num; audio.pause();
-    clickAudio.src = "https://archive.org0099.mp3";
+    currentTrackNum = num; 
+    audio.pause();
+    
+    // Fixed clickAudio path
+    clickAudio.src = baseUrl + "0099.mp3";
     clickAudio.play().catch(() => {});
+    
     refreshDisplay();
     setTimeout(() => {
         let file = num.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + file;
         audio.load();
-        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); });
+        audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }).catch(e => console.error("Playback failed", e));
     }, 400);
 }
 
 function cycleVolume() {
     volIndex = (volIndex + 1) % volLevels.length;
-    audio.volume = volLevels[volIndex]; clickAudio.volume = volLevels[volIndex];
+    audio.volume = volLevels[volIndex]; 
+    clickAudio.volume = volLevels[volIndex];
     updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " ");
     setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500);
 }
