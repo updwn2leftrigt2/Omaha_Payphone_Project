@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
-    <!-- 8-BIT PIXEL FONT -->
-    <link href="https://googleapis.com" rel="stylesheet">
     <style>
+        /* ROBUST FONT IMPORT */
+        @import url('https://googleapis.com');
+
         :root { 
             --payphone-coral: #FF7F50; 
             --coral-shadow: #b34a24;
@@ -58,32 +59,19 @@
             border: 3px solid #111;
             padding: 12px 10px; height: 24%; 
             color: var(--lcd-blue); 
-            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5), 0 0 10px var(--lcd-glow); 
-            font-family: 'Press Start 2P', cursive; /* PIXEL FONT */
-            font-size: 0.65rem; /* Shrinking to account for wide blocky letters */
-            line-height: 1.6;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), 0 0 10px var(--lcd-glow); 
+            /* THE FIX: Explicit Font Stack */
+            font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+            font-size: 0.6rem; /* Small size is required for pixel fonts on mobile */
+            line-height: 1.8;
             overflow: hidden; position: relative; display: flex; 
             flex-direction: column; justify-content: space-around; 
-            
-            box-shadow: 
-                inset 10px 12px 20px rgba(0,0,0,1),   
-                inset -3px -3px 10px rgba(255,255,255,0.15),
-                0 4px 0 #ff9e7a; 
+            box-shadow: inset 10px 12px 20px rgba(0,0,0,1), inset -3px -3px 10px rgba(255,255,255,0.15), 0 4px 0 #ff9e7a; 
             margin-bottom: 10px;
+            letter-spacing: 0px;
         }
 
-        /* Glass Glare Overlay */
-        .lcd-display::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
-            pointer-events: none; z-index: 10;
-        }
-
-        .lcd-display::before { 
-            content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; 
-            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.03) 50%, transparent 70%); 
-            animation: shimmer 8s infinite; z-index: 5; pointer-events: none; 
-        }
+        .lcd-display div { width: 100%; text-align: center; }
 
         .cradle-housing { 
             background: #e0e0e0; background-image: var(--metallic-base); 
@@ -124,7 +112,7 @@
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .nav-row { font-size: 0.55rem; color: var(--lcd-blue); width: 100%; text-align: center; font-family: 'Press Start 2P', cursive; }
+        .nav-row { font-size: 0.5rem; color: var(--lcd-blue); width: 100%; text-align: center; font-family: 'Press Start 2P', cursive; }
     </style>
 </head>
 <body>
@@ -132,7 +120,7 @@
         <div class="payphone-container" id="main-unit">
             <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
             <div class="lcd-display" id="lcd">
-                <div id="line1" style="animation: silver-glow 3s infinite; font-size: 0.5rem;">OMAHA PAYPHONE PROJECT</div>
+                <div id="line1" style="animation: silver-glow 3s infinite; font-size: 0.45rem;">OMAHA PAYPHONE PROJECT</div>
                 <div id="line2">LIFT RECEIVER</div>
                 <div id="line3">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
