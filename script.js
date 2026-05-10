@@ -105,9 +105,12 @@ function toggleHandset() {
     isOffHook = !isOffHook;
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
-        if(f) f.classList.add('up'); isLanguageSelected = false; playTrack(100); 
+        if(f) f.classList.add('up'); 
+        isLanguageSelected = false; 
+        playTrack(100); 
     } else {
-        if(f) f.classList.remove('up'); updateLCD("LEVANTE", "ON HOOK", " ");
+        if(f) f.classList.remove('up'); 
+        updateLCD("LEVANTE", "ON HOOK", " ");
         audio.pause(); audio.src = ""; isDirectoryOpen = false; inputString = "";
     }
 }
