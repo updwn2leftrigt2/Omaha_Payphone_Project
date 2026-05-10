@@ -1,5 +1,7 @@
 // --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvftBSqVh2B4OsfG6A-Z0NdfAQHSfzjzoU8ERxm5y2zkRm3UZx5N9AThrcLilGLFwfCw/exec";
+// PASTE YOUR NEW GOOGLE SCRIPT URL BELOW
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylSiBR4aZnANjlSDJLneav5rXZJlFzofnaRSUwhY-oA84bvwzZPUR24CREMqXJXUAOaw/exec";
+
 const audio = new Audio();
 const clickAudio = new Audio();
 audio.crossOrigin = "anonymous";
@@ -80,23 +82,26 @@ function startRecording() {
         playVoicemailBeep();
         setTimeout(() => {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                mediaRecorder = new MediaRecorder(stream); 
+                // Mobile compatibility check for recording format
+                const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+                const supportedType = types.find(t => MediaRecorder.isTypeSupported(t));
+                
+                mediaRecorder = new MediaRecorder(stream, { mimeType: supportedType }); 
                 audioChunks = []; 
                 isRecording = true;
 
-                // Visual Cue: Start Red Glow
-                document.getElementById('key-hash').classList.add('recording-active');
+                // Start the visual cue (Glow defined in CSS)
+                const hashKey = document.getElementById('key-hash');
+                if(hashKey) hashKey.classList.add('recording-active');
 
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
-                    // Visual Cue: Stop Red Glow
-                    document.getElementById('key-hash').classList.remove('recording-active');
-                    recordedBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
+                    if(hashKey) hashKey.classList.remove('recording-active');
+                    recordedBlob = new Blob(audioChunks, { type: supportedType }); 
                     isReviewing = true;
                     updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
                 };
                 mediaRecorder.start();
-                // Updated Prompt to reference the red key
                 updateLCD("LEAVE MESSAGE", "RED KEY TO STOP", "● RECORDING");
             }).catch(() => { updateLCD("MIC ERROR", "CHECK PERMISSIONS", " "); });
         }, 600);
@@ -105,13 +110,15 @@ function startRecording() {
 
 function uploadToDrive(blob) {
     updateLCD("UPLOADING...", "PLEASE WAIT", "SENDING...");
-    const reader = new FileReader(); reader.readAsDataURL(blob);
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
     reader.onloadend = () => {
+        // We send the full DataURL; your new Apps Script logic handles the split(",")
         fetch(GOOGLE_SCRIPT_URL, { 
             method: "POST", 
             mode: "no-cors", 
             headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-            body: "data=" + encodeURIComponent(reader.result.split(',')) 
+            body: "data=" + encodeURIComponent(reader.result) 
         })
         .then(() => { 
             updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE"); 
@@ -171,7 +178,8 @@ function toggleHandset() {
         if (isRecording && mediaRecorder) { 
             mediaRecorder.stop(); 
             isRecording = false; 
-            document.getElementById('key-hash').classList.remove('recording-active');
+            const hashKey = document.getElementById('key-hash');
+            if(hashKey) hashKey.classList.remove('recording-active');
         }
         if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
         isReviewing = false; if(f) f.classList.remove('up'); triggerRecoil('heavy');
@@ -190,14 +198,14 @@ function press(key) {
         return;
     }
     
-    // --- Optimized Mobile Replay Logic ---
+    // --- Optimized Mobile Replay ---
     if (isReviewing) {
-        initAudioEngine(); // Re-wake engine for mobile
+        initAudioEngine(); // Wake context for replay
         if (key === '1') {
             audio.pause();
             const recordedUrl = URL.createObjectURL(recordedBlob);
             audio.src = recordedUrl;
-            audio.load(); // Required for Blobs on some mobile browsers
+            audio.load(); // Poke the audio element
             audio.play().catch(e => console.error("Playback failed:", e));
             updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING...");
         }
