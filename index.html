@@ -7,101 +7,103 @@
     <style>
         :root { 
             --payphone-coral: #FF7F50; 
-            --metallic: linear-gradient(145deg, #e6e6e6, #8a8a8a);
+            --metallic: linear-gradient(135deg, #f0f0f0 0%, #a0a0a0 50%, #f0f0f0 100%);
             --lcd-blue: #00e5ff; 
             --lcd-glow: rgba(0, 229, 255, 0.6); 
         }
 
         body { 
-            background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; 
+            background-color: #111; display: flex; justify-content: center; align-items: center; 
             height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; 
         }
 
-        /* Faceplate with noise texture */
+        /* Ambient Body Pulse */
         .payphone-container { 
             background: var(--payphone-coral);
             background-image: url("https://transparenttextures.com");
-            padding: 20px; border-radius: 12px; border: 6px solid #d45d30; 
+            padding: 20px; border-radius: 15px; border: 6px solid #d45d30; 
             width: 90vw; max-width: 360px; text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.2);
-            transform: scale(0.95);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.9), inset 0 0 20px rgba(255,255,255,0.1);
+            animation: ambient-pulse 8s ease-in-out infinite;
+            transform: scale(0.92);
+        }
+        @keyframes ambient-pulse {
+            0%, 100% { filter: brightness(100%); }
+            50% { filter: brightness(110%) contrast(105%); }
         }
 
-        /* SILVER RECEIVER CRADLE */
-        .cradle-area { width: 100%; display: flex; justify-content: center; margin-bottom: 15px; }
-        .handset-hook {
-            width: 140px; height: 35px; background: var(--metallic);
-            border-radius: 4px; border: 2px solid #555;
-            box-shadow: 0 5px #333, 0 10px 10px rgba(0,0,0,0.4);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: #111; font-weight: bold; font-size: 0.7rem;
-            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-        }
-        .handset-hook.off-hook { transform: translateY(4px); box-shadow: 0 1px #333; background: #fff; }
-
-        /* LCD WITH GLASS & SCANLINES */
+        /* LCD Display */
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
-            margin-bottom: 20px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.05rem; font-weight: bold; overflow: hidden; position: relative;
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 115px; 
+            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1rem; font-weight: bold; overflow: hidden; position: relative;
             display: flex; flex-direction: column; justify-content: space-around;
-            box-shadow: inset 0 0 20px black;
+            box-shadow: inset 0 0 25px black;
         }
-        .lcd-display::before { /* Scanlines */
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
-            pointer-events: none; z-index: 3;
-        }
-        .lcd-display::after { /* Glass Glare */
+        .lcd-display::after { 
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%);
             pointer-events: none; z-index: 4;
         }
 
-        .pulsing-header { animation: pulse 4s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        /* ENLARGED METALLIC CRADLE */
+        .handset-hook {
+            width: 180px; height: 45px; background: var(--metallic);
+            background-size: 200% 200%;
+            margin: 5px auto 20px; border-radius: 6px; border: 2px solid #555;
+            box-shadow: 0 6px #333, 0 12px 15px rgba(0,0,0,0.4);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #111; font-weight: bold; font-size: 0.8rem;
+            clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+            animation: metallic-glimmer 5s linear infinite;
+        }
+        .handset-hook.off-hook { transform: translateY(4px); box-shadow: 0 2px #333; filter: brightness(1.2); }
+
+        /* Metallic Glimmer Effect */
+        @keyframes metallic-glimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
 
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; }
-        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 24s linear infinite; }
+        .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 20s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* LAYOUT: KEYPAD + VOLUME */
-        .main-controls { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .main-controls { display: flex; align-items: center; justify-content: center; gap: 15px; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         
         button.key { 
-            background: radial-gradient(circle at center, #eee 0%, #999 100%);
+            background: var(--metallic); background-size: 200% 200%;
             color: #111; border: 1px solid #777; padding: 16px 18px; 
             font-size: 1.6rem; border-radius: 4px; cursor: pointer; 
             box-shadow: 0 4px #555, inset 0 1px 2px white; font-weight: bold;
+            animation: metallic-glimmer 6s linear infinite;
             touch-action: manipulation;
         }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #555; }
 
-        /* METALLIC CIRCULAR VOLUME BUTTON */
         .vol-btn { 
-            background: radial-gradient(circle at center, #cfcfcf 0%, #777 100%);
+            background: var(--metallic); background-size: 200% 200%;
             color: #111; border: 2px solid #555; width: 75px; height: 75px; 
             border-radius: 50%; font-size: 0.7rem; font-weight: bold; cursor: pointer;
             box-shadow: 0 4px #444, inset 0 2px 4px white;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            line-height: 1.1; touch-action: manipulation;
+            animation: metallic-glimmer 4s linear infinite;
+            touch-action: manipulation;
         }
-        .vol-btn:active { transform: translateY(3px); box-shadow: 0 1px #444; }
     </style>
 </head>
 <body>
 <div class="payphone-container">
-    <div class="cradle-area">
-        <div id="handset-toggle" class="handset-hook" onclick="toggleHandset()">RECEIVER HOOK</div>
-    </div>
-
     <div class="lcd-display" id="lcd">
-        <div id="line1" class="line-container pulsing-header">OMAHA PAYPHONE PROJECT</div>
+        <div id="line1" class="line-container" style="opacity:0.8;">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
         <div id="line4" class="line-container">&nbsp;</div>
     </div>
+
+    <!-- Receiver Hook moved below LCD and enlarged -->
+    <div id="handset-toggle" class="handset-hook" onclick="toggleHandset()">RECEIVER HOOK</div>
     
     <div class="main-controls">
         <div class="keypad">
@@ -119,9 +121,7 @@
             <button class="key" onclick="press('#')">#</button>
         </div>
 
-        <button class="vol-btn" onclick="cycleVolume()">
-            VOLUME<br>PRESS
-        </button>
+        <button class="vol-btn" onclick="cycleVolume()">VOLUME<br>PRESS</button>
     </div>
 </div>
 <script src="script.js"></script>
