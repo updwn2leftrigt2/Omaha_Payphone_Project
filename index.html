@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
     <style>
         :root { 
@@ -16,8 +16,13 @@
             --off-white: #fdfaf0;
         }
 
-        /* HARD IOS OVERRIDE */
-        * { -webkit-tap-highlight-color: transparent !important; touch-action: none; user-select: none; -webkit-user-select: none; }
+        /* IOS ZOOM & INTERACTION FIX */
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            touch-action: manipulation; /* DISABLES DOUBLE-TAP ZOOM OFFICIALLY */
+            -webkit-user-select: none;
+            user-select: none;
+        }
         
         body { 
             background-color: #1a1a1a; 
@@ -33,7 +38,7 @@
             padding: 20px; background: #000; border-radius: 30px; 
             box-shadow: inset 0 0 60px #000; 
             display: flex; justify-content: center; align-items: center; 
-            border: 2px solid #222; max-width: 95vw; max-height: 95svh;
+            border: 2px solid #222; max-width: 95vw;
         }
 
         .payphone-container { 
@@ -42,9 +47,11 @@
             border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; 
             border-right: 12px solid var(--coral-shadow); border-bottom: 16px solid #8c381c;
             width: 310px; text-align: center; box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
-            transform: rotateX(2deg) rotateY(-1deg); transition: transform 0.1s;
+            transform: rotateX(2deg) rotateY(-1deg);
+            transition: transform 0.1s;
         }
 
+        /* RECESSED BEVELED SIGN */
         .phone-sign {
             background: var(--off-white); margin-bottom: 15px; padding: 5px; border-radius: 4px;
             box-shadow: 0 0 20px var(--off-white), inset 4px 4px 10px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.8);
@@ -109,7 +116,7 @@
                 <div id="line4" class="nav-row">&nbsp;</div>
             </div>
             <div class="cradle-housing">
-                <div class="cradle-3d" id="receiver-hit-area">
+                <div class="cradle-3d" onclick="toggleHandset()">
                     <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
                     <div id="handset-flipper" class="flipper-container">
                         <div class="flipper-face flipper-front"></div>
@@ -120,12 +127,12 @@
             <div class="controls-layout">
                 <div></div>
                 <div class="keypad">
-                    <button class="key" id="k1">1</button><button class="key" id="k2">2</button><button class="key" id="k3">3</button>
-                    <button class="key" id="k4">4</button><button class="key" id="k5">5</button><button class="key" id="k6">6</button>
-                    <button class="key" id="k7">7</button><button class="key" id="k8">8</button><button class="key" id="k9">9</button>
-                    <button class="key" id="ks">*</button><button class="key" id="k0">0</button><button class="key" id="kh">#</button>
+                    <button class="key" onclick="press('1')">1</button><button class="key" onclick="press('2')">2</button><button class="key" onclick="press('3')">3</button>
+                    <button class="key" onclick="press('4')">4</button><button class="key" onclick="press('5')">5</button><button class="key" onclick="press('6')">6</button>
+                    <button class="key" onclick="press('7')">7</button><button class="key" onclick="press('8')">8</button><button class="key" onclick="press('9')">9</button>
+                    <button class="key" onclick="press('*')">*</button><button class="key" onclick="press('0')">0</button><button class="key" onclick="press('#')">#</button>
                 </div>
-                <div class="vol-container"><button class="vol-btn" id="vb">VOL<br>PRESS</button></div>
+                <div class="vol-container"><button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button></div>
             </div>
         </div>
     </div>
