@@ -16,105 +16,123 @@
             --off-white: #fdfaf0;
         }
 
-        body { background-color: #1a1a1a; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 30px 30px; display: flex; justify-content: center; align-items: center; height: 100dvh; margin: 0; font-family: 'Courier New', Courier, monospace; overflow: hidden; perspective: 1200px; }
+        body { 
+            background-color: #1a1a1a; 
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex; justify-content: center; align-items: center; 
+            height: 100svh; /* Optimized for mobile URL bars */
+            margin: 0; font-family: 'Courier New', Courier, monospace; 
+            overflow: hidden; perspective: 1200px;
+        }
 
-        .booth-frame { padding: 25px; background: #000; border-radius: 30px; box-shadow: inset 0 0 60px #000; display: flex; justify-content: center; align-items: center; border: 2px solid #222; max-width: 95vw; }
+        .booth-frame { 
+            padding: clamp(10px, 5vw, 25px); 
+            background: #000; border-radius: 30px; 
+            box-shadow: inset 0 0 60px #000; 
+            display: flex; justify-content: center; align-items: center; 
+            border: 2px solid #222; max-width: 98vw;
+        }
 
+        /* 3D MAIN UNIT */
         .payphone-container { 
-            background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
-            position: relative; padding: 25px; border-radius: 12px; 
-            border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; border-right: 14px solid var(--coral-shadow); border-bottom: 18px solid #8c381c;
-            width: 320px; text-align: center; box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
-            transform: rotateX(2deg) rotateY(-1deg); transition: transform 0.1s;
+            background: var(--payphone-coral); 
+            background-image: url("https://transparenttextures.com");
+            position: relative; padding: 20px; border-radius: 12px; 
+            border-top: 4px solid #ff9e7a; border-left: 6px solid #d45d30; 
+            border-right: 12px solid var(--coral-shadow); border-bottom: 16px solid #8c381c;
+            width: 310px; text-align: center; 
+            box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
+            transform: rotateX(2deg) rotateY(-1deg);
+            transition: transform 0.1s;
+            touch-action: none; /* Prevents unwanted mobile gestures */
         }
 
         /* RECESSED BEVELED SIGN */
         .phone-sign {
             background: var(--off-white);
-            margin-bottom: 20px;
-            padding: 5px;
-            border-radius: 4px;
-            /* Outer glow + Heavy inner shadow for bevel effect */
-            box-shadow: 
-                0 0 20px var(--off-white), 
-                inset 3px 3px 8px rgba(0,0,0,0.6), 
-                inset -1px -1px 2px rgba(255,255,255,0.8);
+            margin-bottom: 15px; padding: 5px; border-radius: 4px;
+            box-shadow: 0 0 20px var(--off-white), inset 4px 4px 10px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.8);
             display: flex; justify-content: center; align-items: center;
-            position: relative; overflow: hidden; height: 50px;
-            border: 2px solid rgba(0,0,0,0.2);
+            position: relative; overflow: hidden; height: 48px; border: 1px solid rgba(0,0,0,0.3);
         }
         .phone-sign::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url("https://transparenttextures.com"); opacity: 0.12; pointer-events: none; mix-blend-mode: multiply; }
 
         .sign-text {
-            color: var(--sign-pink);
-            font-family: 'Arial Black', Gadget, sans-serif;
-            font-weight: 950;
-            font-size: 1.25rem; 
-            width: 100%;
-            /* NARROWED KERNING TO FIT TEXT */
-            letter-spacing: -1.8px; 
+            color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif;
+            font-weight: 950; font-size: 1.2rem; width: 100%;
+            letter-spacing: -1.6px; /* Condensed kerning */
             -webkit-text-stroke: 1px var(--lcd-blue);
             text-shadow: 2px 2px 0px var(--lcd-blue), 0 0 10px rgba(0, 229, 255, 0.4);
-            z-index: 2; white-space: nowrap; transform: scaleX(0.95); /* Slight squeeze for fit */
+            z-index: 2; white-space: nowrap; transform: scaleX(0.92);
         }
 
-        .lcd-display { background: #001a1d; border: 8px solid #222; padding: 10px; height: 110px; margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); font-size: 1.1rem; font-weight: 900; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: space-around; box-shadow: inset 0 0 30px black; }
+        /* LCD DISPLAY */
+        .lcd-display { background: #001a1d; border: 8px solid #222; padding: 10px; height: 105px; margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); font-size: 1.05rem; font-weight: 900; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: space-around; box-shadow: inset 0 0 30px black; }
         .lcd-display::before { content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%); animation: shimmer 8s infinite; z-index: 5; pointer-events: none; }
         @keyframes shimmer { 0% { left: -150%; } 100% { left: 150%; } }
 
-        .cradle-housing { background: #e0e0e0; background-image: var(--metallic-base); position: relative; padding: 12px 8px; border-radius: 8px; border: 2px solid #444; margin: 0 auto 20px; width: 95%; box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 1px 3px white; }
-        .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.5; }
-        .cradle-3d { position: relative; width: 100%; height: 85px; perspective: 1000px; cursor: pointer; z-index: 10; }
-        
-        /* FIXED ALIGNMENT FOR CRADLE TEXT */
+        /* CRADLE */
+        .cradle-housing { background: #e0e0e0; background-image: var(--metallic-base); position: relative; padding: 12px 8px; border-radius: 8px; border: 2px solid #444; margin: 0 auto 15px; width: 95%; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.4; }
+        .cradle-3d { position: relative; width: 100%; height: 75px; perspective: 1000px; cursor: pointer; z-index: 10; }
         .cradle-base { position: absolute; width: 100%; height: 100%; background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%); clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%); box-shadow: inset 0 25px 50px black; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; }
-        .receiver-text { color: #ddd; font-weight: 950; font-size: 1rem; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255,255,255,0.4); z-index: 2; white-space: nowrap; }
+        .receiver-text { color: #ddd; font-weight: 950; font-size: 0.95rem; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255,255,255,0.4); z-index: 2; white-space: nowrap; }
 
         .flipper-container { position: absolute; left: 40%; top: 35px; width: 20%; height: 35px; transform-style: preserve-3d; transition: transform 0.5s ease; transform-origin: top center; z-index: 15; }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #222; }
         .flipper-front::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity:0.6; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
-        /* KEYPAD CENTERING FIX */
-        .controls-layout { display: grid; grid-template-columns: 1fr 200px 1fr; align-items: center; justify-content: center; width: 100%; }
-        .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        button.key, .vol-btn { background: #dcdcdc; background-image: var(--metallic-base); position: relative; color: #111; border: 1px solid #666; width: 60px; height: 55px; font-size: 1.6rem; border-radius: 6px; cursor: pointer; box-shadow: 0 6px #222, inset 0 1px 2px white; font-weight: 900; transition: transform 0.05s, box-shadow 0.05s; }
-        button.key::after, .vol-btn::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity: 0.4; border-radius:6px; pointer-events:none; }
-        button.key:active, .vol-btn:active { transform: translateY(4px); box-shadow: 0 2px #222; }
+        /* CENTERED CONTROLS */
+        .controls-layout { display: grid; grid-template-columns: 1fr 190px 1fr; align-items: center; justify-content: center; width: 100%; }
+        .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-        .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 10px; }
-        .vol-btn { width: 50px; height: 50px; font-size: 0.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        button.key, .vol-btn { 
+            background: #dcdcdc; background-image: var(--metallic-base); position: relative; 
+            color: #111; border: 1px solid #666; width: 58px; height: 55px; 
+            font-size: 1.5rem; border-radius: 6px; cursor: pointer; 
+            box-shadow: 0 5px #222, inset 0 1px 2px white; font-weight: 900; 
+            transition: transform 0.05s; touch-action: manipulation;
+        }
+        button.key::after, .vol-btn::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); opacity: 0.3; border-radius:6px; pointer-events:none; }
+        button.key:active, .vol-btn:active { transform: translateY(4px); box-shadow: 0 1px #222; }
 
+        .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 5px; }
+        .vol-btn { width: 48px; height: 48px; font-size: 0.55rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* RECOIL ENGINE */
         .recoil { animation: recoil-shake 0.15s cubic-bezier(.36,.07,.19,.97) both; }
         .micro-recoil { animation: micro-shake 0.08s linear both; }
         @keyframes recoil-shake { 10%, 90% { transform: translate3d(-1px, 2px, 0) rotateX(2deg); } 40%, 60% { transform: translate3d(2px, 1px, 0) rotateX(2deg); } }
         @keyframes micro-shake { 0% { transform: translate3d(0, 0, 0) rotateX(2deg); } 50% { transform: translate3d(1px, 1px, 0) rotateX(2.1deg); } 100% { transform: translate3d(0, 0, 0) rotateX(2deg); } }
         @keyframes silver-glow { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 20px white; } }
+        
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .nav-row { font-size: 0.95rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
+        .nav-row { font-size: 0.9rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
-        @media (max-width: 400px) { .payphone-container { transform: scale(0.85) rotateX(2deg); margin: -40px; } .booth-frame { padding: 15px; border-radius: 20px; } .sign-text { font-size: 1.15rem; letter-spacing: -2px; } }
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 400px) {
+            .payphone-container { transform: scale(0.85) rotateX(2deg); margin-top: -30px; }
+            .sign-text { font-size: 1.15rem; letter-spacing: -1.8px; }
+        }
     </style>
 </head>
 <body>
     <div class="booth-frame">
         <div class="payphone-container" id="main-unit">
-            <div class="phone-sign">
-                <span class="sign-text">OMAHA PAYPHONE PROJECT</span>
-            </div>
+            <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
             <div class="lcd-display" id="lcd">
-                <div id="line1" class="line-container pulsing-header" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+                <div id="line1" class="line-container" style="animation: silver-glow 3s infinite;">OMAHA PAYPHONE PROJECT</div>
                 <div id="line2" class="line-container">LIFT RECEIVER</div>
                 <div id="line3" class="line-container">LEVANTE EL RECEPTOR</div>
                 <div id="line4" class="nav-row">&nbsp;</div>
             </div>
             <div class="cradle-housing">
                 <div class="cradle-3d" onclick="toggleHandset()">
-                    <div class="cradle-base">
-                        <span class="receiver-text">RECEIVER / RECEPTOR</span>
-                    </div>
+                    <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
                     <div id="handset-flipper" class="flipper-container">
                         <div class="flipper-face flipper-front"></div>
                         <div class="flipper-face flipper-bottom" style="height:20px; transform:rotateX(-90deg) translateZ(30px); background:#666;"></div>
