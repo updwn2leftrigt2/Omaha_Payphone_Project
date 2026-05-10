@@ -23,73 +23,64 @@
 
         .lcd-display { 
             background: #001a1d; border: 8px solid #222; padding: 10px; height: 130px; 
-            margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.2rem; font-weight: 900; overflow: hidden; position: relative;
+            margin-bottom: 15px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
+            font-size: 1.25rem; font-weight: 900; overflow: hidden; position: relative;
             display: flex; flex-direction: column; justify-content: space-around;
             box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
-        .lcd-display::before { 
-            content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
-            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
-            animation: shimmer-fast 8s infinite; z-index: 5; pointer-events: none;
-        }
-        @keyframes shimmer-fast { 0% { left: -150%; } 100% { left: 150%; } }
 
-        /* LARGER CRADLE FOR BETTER SPACING */
+        /* SILVER PLATE HOUSING */
         .cradle-housing {
-            background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;
-            margin: 0 auto 20px; width: fit-content; box-shadow: inset 0 5px 15px black;
+            background: var(--metallic); background-size: 200%;
+            padding: 12px; border-radius: 8px; border: 2px solid #555;
+            margin: 0 auto 25px; width: fit-content; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 1px 2px white;
         }
+
+        /* RECESSED TRAPEZOID (THE "SHADOW") */
         .cradle-3d {
             position: relative; width: 230px; height: 85px; perspective: 1000px; cursor: pointer;
         }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
-            background: var(--metallic);
+            background: #111; /* Recessed dark color */
             clip-path: polygon(0% 0%, 100% 0%, 75% 100%, 25% 100%);
-            border: 1px solid #333; box-shadow: 0 15px 30px rgba(0,0,0,0.9);
+            box-shadow: inset 0 10px 20px black; /* Creates the "hole" look */
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 4px;
+            padding-top: 8px;
         }
         
-        /* BOLD SINGLE ROW TEXT AT TOP */
+        /* BOLDER LIGHT CONTRAST TEXT */
         .receiver-text {
-            color: #000; font-weight: 900; font-size: 0.65rem; letter-spacing: 2px;
-            text-shadow: 0 0 3px rgba(255,255,255,0.5);
+            color: var(--lcd-blue); font-weight: 900; font-size: 0.85rem; letter-spacing: 2px;
+            text-shadow: 0 0 8px var(--lcd-glow);
             animation: receiver-pulse 2s infinite;
         }
-        @keyframes receiver-pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.03); }
-        }
 
-        /* FLIPPER PUSHED LOWER */
+        /* HEX FLIPPER */
         .flipper-box {
-            position: absolute; left: 40%; top: 22px; /* Moved down to avoid top text */
-            width: 20%; height: 50px; 
+            position: absolute; left: 40%; top: 28px; width: 20%; height: 45px;
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: top center;
-            animation: flip-pulse 2s infinite;
         }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic); border: 1px solid #111; }
         .flipper-front  { transform: translateZ(12px); }
         .flipper-back   { transform: rotateY(180deg) translateZ(12px); }
         .flipper-right  { width: 24px; transform: rotateY(90deg) translateZ(23px); left: 50%; margin-left: -12px;}
         .flipper-left   { width: 24px; transform: rotateY(-90deg) translateZ(23px); left: 50%; margin-left: -12px;}
-        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(38px); }
+        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(33px); }
         
-        /* 30 DEGREE FLIP */
-        .flipper-box.up { transform: rotateX(-30deg); animation: none; }
+        .flipper-box.up { transform: rotateX(-30deg); }
 
-        @keyframes flip-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
+        @keyframes receiver-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 15px var(--lcd-glow); } }
         @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(108%); } }
 
         .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .nav-row { font-size: 1rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
+        .nav-row { font-size: 1.05rem; font-weight: 900; color: var(--lcd-blue); width: 100%; text-align: center; }
 
         .controls-layout { display: grid; grid-template-columns: 1fr 240px 1fr; align-items: center; justify-content: center; }
         .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -111,7 +102,7 @@
 <body>
 <div class="payphone-container">
     <div class="lcd-display" id="lcd">
-        <div id="line1" class="line-container" style="animation: pulse-header 3s infinite;">OMAHA PAYPHONE PROJECT</div>
+        <div id="line1" class="line-container" style="animation: receiver-pulse 3s infinite;">OMAHA PAYPHONE PROJECT</div>
         <div id="line2" class="line-container">LIFT HANDSET / LEVANTE</div>
         <div id="line3" class="line-container">ON HOOK</div>
         <div id="line4" class="nav-row">&nbsp;</div>
