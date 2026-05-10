@@ -20,62 +20,66 @@
             box-shadow: 0 40px 100px rgba(0,0,0,1), inset 0 0 20px rgba(255,255,255,0.2);
             animation: ambient-pulse 10s ease-in-out infinite; transform: scale(0.9);
         }
-        @keyframes ambient-pulse { 0%, 100% { filter: brightness(100%); } 50% { filter: brightness(105%); } }
 
+        /* BOLDER LCD PROMPTS */
         .lcd-display { 
-            background: #001a1d; border: 8px solid #222; padding: 10px; height: 120px; 
+            background: #001a1d; border: 8px solid #222; padding: 10px; height: 130px; 
             margin-bottom: 10px; color: var(--lcd-blue); text-shadow: 0 0 10px var(--lcd-glow); 
-            font-size: 1.05rem; font-weight: bold; overflow: hidden; position: relative;
+            font-size: 1.25rem; /* Increased font size */
+            font-weight: 900; overflow: hidden; position: relative;
             display: flex; flex-direction: column; justify-content: space-around;
             box-shadow: inset 0 0 30px black; border-radius: 4px;
         }
-        .lcd-display::before { 
-            content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            animation: shimmer-fast 8s infinite; z-index: 5; pointer-events: none;
-        }
-        @keyframes shimmer-fast { 0% { left: -150%; } 100% { left: 150%; } }
 
-        /* INVERTED 3D CRADLE (Narrow at top) */
+        /* 3D CRADLE PROTRUSION */
+        .cradle-housing {
+            background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px;
+            margin: 0 auto 25px; width: fit-content; box-shadow: inset 0 5px 15px black;
+        }
         .cradle-3d {
-            position: relative; width: 220px; height: 95px; margin: 0 auto 30px;
+            position: relative; width: 220px; height: 100px;
             perspective: 1000px; cursor: pointer;
         }
         .cradle-base {
             position: absolute; width: 100%; height: 100%;
             background: var(--metallic);
-            /* Narrow top (25% to 75%), Wide bottom (0% to 100%) */
-            clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%);
-            border: 1px solid #333; box-shadow: 0 15px 25px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            padding-bottom: 8px; /* Text moved to bottom */
+            /* Wide top (0% to 100%), Narrow bottom (25% to 75%) */
+            clip-path: polygon(0% 0%, 100% 0%, 75% 100%, 25% 100%);
+            border: 1px solid #333; box-shadow: 0 15px 30px rgba(0,0,0,0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 12px;
         }
+        
+        /* PULSING INTERACTIVE TEXT */
         .receiver-text {
-            color: #000; font-weight: 900; font-size: 0.65rem; letter-spacing: 2px;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5); opacity: 0.9; line-height: 1.1;
+            color: #000; font-weight: 900; font-size: 0.75rem; letter-spacing: 3px;
+            opacity: 0.8; line-height: 1.2;
+            animation: interactive-pulse 2s infinite;
         }
 
-        /* 3D HEX FLIPPER - Hinged at narrow top */
+        /* 3D HEX FLIPPER - Hinged at top (Wider part) */
         .flipper-box {
-            position: absolute; left: 43%; top: 0; width: 14%; height: 55px;
+            position: absolute; left: 40%; top: 0; width: 20%; height: 60px;
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: top center;
+            animation: interactive-pulse 2s infinite;
         }
-        .flipper-face {
-            position: absolute; width: 100%; height: 100%;
-            background: var(--metallic); border: 1px solid #222;
-        }
-        .flipper-front  { transform: translateZ(12px); }
-        .flipper-back   { transform: rotateY(180deg) translateZ(12px); }
-        .flipper-right  { width: 24px; transform: rotateY(90deg) translateZ(26px); left: 50%; margin-left: -12px;}
-        .flipper-left   { width: 24px; transform: rotateY(-90deg) translateZ(26px); left: 50%; margin-left: -12px;}
-        .flipper-bottom { height: 24px; transform: rotateX(-90deg) translateZ(43px); }
+        .flipper-face { position: absolute; width: 100%; height: 100%; background: var(--metallic); border: 1px solid #111; }
+        .flipper-front  { transform: translateZ(15px); }
+        .flipper-back   { transform: rotateY(180deg) translateZ(15px); }
+        .flipper-right  { width: 30px; transform: rotateY(90deg) translateZ(35px); left: 50%; margin-left: -15px;}
+        .flipper-left   { width: 30px; transform: rotateY(-90deg) translateZ(35px); left: 50%; margin-left: -15px;}
+        .flipper-bottom { height: 30px; transform: rotateX(-90deg) translateZ(45px); }
         
-        /* 45 DEGREE FLIP */
-        .flipper-box.up { transform: rotateX(-45deg); }
+        .flipper-box.up { transform: rotateX(-45deg); animation: none; }
 
-        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.2em; display: flex; justify-content: center; align-items: center; position: relative; }
+        @keyframes interactive-pulse {
+            0%, 100% { filter: brightness(1); transform: scale(1); }
+            50% { filter: brightness(1.3); transform: scale(1.02); }
+        }
+
+        .line-container { width: 100%; overflow: hidden; white-space: nowrap; height: 1.4em; display: flex; justify-content: center; align-items: center; position: relative; }
         .scroll-wrap { display: inline-block; position: absolute; animation: auto-scroll 22s linear infinite; }
         @keyframes auto-scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
@@ -83,16 +87,15 @@
         .keypad { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         
         button.key { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 70px; height: 65px; 
-            font-size: 1.8rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold;
+            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 72px; height: 68px; 
+            font-size: 1.9rem; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #333, inset 0 1px 2px white; font-weight: bold;
             touch-action: manipulation;
         }
         button.key:active { transform: translateY(3px); box-shadow: 0 1px #333; }
 
-        .vol-container { grid-column: 3; display: flex; justify-content: flex-start; padding-left: 10px; }
         .vol-btn { 
-            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 55px; height: 55px; 
-            border-radius: 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333;
+            background: var(--metallic); background-size: 200%; color: #111; border: 1px solid #777; width: 58px; height: 58px; 
+            border-radius: 8px; font-size: 0.65rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px #333;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
     </style>
@@ -106,17 +109,20 @@
         <div id="line4" class="line-container" style="font-size:0.8rem; color:var(--lcd-blue);">&nbsp;</div>
     </div>
 
-    <div class="cradle-3d" onclick="toggleHandset()">
-        <div class="cradle-base">
-            <span class="receiver-text">RECEIVER</span>
-            <span class="receiver-text">RECEPTOR</span>
-        </div>
-        <div id="handset-flipper" class="flipper-box">
-            <div class="flipper-face flipper-front"></div>
-            <div class="flipper-face flipper-back"></div>
-            <div class="flipper-face flipper-right"></div>
-            <div class="flipper-face flipper-left"></div>
-            <div class="flipper-face flipper-bottom"></div>
+    <!-- 3D CRADLE IN HOUSING -->
+    <div class="cradle-housing">
+        <div class="cradle-3d" onclick="toggleHandset()">
+            <div class="cradle-base">
+                <span class="receiver-text">RECEIVER</span>
+                <span class="receiver-text">RECEPTOR</span>
+            </div>
+            <div id="handset-flipper" class="flipper-box">
+                <div class="flipper-face flipper-front"></div>
+                <div class="flipper-face flipper-back"></div>
+                <div class="flipper-face flipper-right"></div>
+                <div class="flipper-face flipper-left"></div>
+                <div class="flipper-face flipper-bottom"></div>
+            </div>
         </div>
     </div>
     
@@ -136,7 +142,7 @@
             <button class="key" onclick="press('0')">0</button>
             <button class="key" onclick="press('#')">#</button>
         </div>
-        <div class="vol-container">
+        <div class="vol-container" style="padding-left:10px;">
             <button class="vol-btn" onclick="cycleVolume()">VOL<br>PRESS</button>
         </div>
     </div>
