@@ -111,14 +111,23 @@ function press(key) {
         return;
     }
 
-    // --- FIXED REVIEW LOGIC ---
+    // --- MOBILE-OPTIMIZED REVIEW LOGIC ---
     if (isReviewing) {
         if (key === '1') { 
             if (recordedBlob) {
-                const reviewUrl = URL.createObjectURL(recordedBlob);
+                // Mobile safety: ensure player is ready
+                audio.pause();
+                const reviewUrl = window.URL.createObjectURL(recordedBlob);
                 audio.src = reviewUrl;
-                audio.load(); // Force the audio element to recognize the new blob
-                audio.play().catch(e => console.error("Playback error:", e));
+                // Immediate play call on the same touch event
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Mobile playback blocked: ", error);
+                        // Fallback: try one more time without context logic
+                        audio.play();
+                    });
+                }
             }
         } else if (key === '#') { 
             isReviewing = false; 
@@ -179,6 +188,7 @@ function press(key) {
 function startRecording() { 
     updateLCD("VOICEMAIL", "WAIT BEEP", "ESPERE TONO", " "); 
     setTimeout(() => { 
+        initAudioEngine();
         const beep = audioCtx.createOscillator(), bg = audioCtx.createGain(); 
         beep.frequency.setValueAtTime(1000, audioCtx.currentTime); 
         bg.gain.setValueAtTime(0.1, audioCtx.currentTime); 
