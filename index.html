@@ -45,6 +45,7 @@
             box-shadow: inset 6px 6px 15px rgba(0,0,0,0.9), inset -2px -2px 5px rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.5); 
         }
 
+        /* UPDATED RECEIVER PLATE */
         .cradle-housing { 
             background: #e0e0e0; background-image: var(--metallic-base); position: relative; 
             padding: 8px; border-radius: 8px; width: 95%; align-self: center; cursor: pointer; z-index: 20;
@@ -52,10 +53,41 @@
             box-shadow: 10px 15px 25px rgba(0,0,0,0.7);
         }
         
-        .cradle-base { height: 60px; background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%); clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; position: relative; pointer-events: none; }
-        .receiver-text { color: #ddd; font-weight: 950; font-size: 0.75rem; letter-spacing: 1px; font-family: sans-serif; text-transform: uppercase; }
+        .cradle-base { 
+            height: 60px; 
+            background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%); 
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%); 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: flex-end; /* Keeps text at the bottom */
+            padding-bottom: 8px;
+            position: relative; 
+            pointer-events: none; 
+        }
+        
+        .receiver-text { 
+            color: #ddd; 
+            font-weight: 950; 
+            font-size: 0.65rem; 
+            letter-spacing: 1px; 
+            font-family: sans-serif; 
+            text-transform: uppercase; 
+            z-index: 30; /* Always on top of flipper */
+        }
 
-        .flipper-container { position: absolute; left: 40%; top: 25px; width: 20%; height: 30px; transform-style: preserve-3d; transition: transform 0.4s ease; transform-origin: top center; z-index: 25; }
+        /* UPDATED FLIPPER POSITION */
+        .flipper-container { 
+            position: absolute; 
+            left: 40%; 
+            top: 5px; /* Moved higher up to stay clear of text */
+            width: 20%; 
+            height: 25px; 
+            transform-style: preserve-3d; 
+            transition: transform 0.4s ease; 
+            transform-origin: top center; 
+            z-index: 10; 
+        }
         .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #222; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
@@ -70,6 +102,7 @@
         }
         button.key:active, .vol-btn:active { transform: translateY(3px); box-shadow: 0 1px #222; }
 
+        /* FLASHING ANIMATIONS */
         @keyframes key-pulse-blue {
             0% { box-shadow: 0 4px #222; }
             50% { box-shadow: 0 4px #222, 0 0 15px var(--lcd-blue); outline: 2px solid var(--lcd-blue); }
@@ -97,7 +130,7 @@
         </div>
         <div class="cradle-housing" id="receiver-latch" onclick="toggleHandset()">
             <div class="cradle-base">
-                <span class="receiver-text">RECEIVER</span>
+                <span class="receiver-text">RECEIVER / RECEPTOR</span>
                 <div id="handset-flipper" class="flipper-container">
                     <div class="flipper-face"></div>
                 </div>
