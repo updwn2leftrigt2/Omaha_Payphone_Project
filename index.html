@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Omaha Payphone Project</title>
     
-    <!-- YOUR EXACT FONT LINKS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- FONT LINKS -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
-        /* YOUR EXACT CSS CLASS */
         .press-start-2p-regular {
           font-family: "Press Start 2P", system-ui;
           font-weight: 400;
@@ -38,12 +37,7 @@
             overflow: hidden;
         }
 
-        .booth-frame { 
-            padding: 15px; background: #000; border-radius: 30px; 
-            box-shadow: inset 0 0 60px #000; display: flex; justify-content: center; 
-            align-items: center; border: 2px solid #222; max-width: 95vw; max-height: 95svh;
-            pointer-events: none;
-        }
+        .booth-frame { padding: 15px; background: #000; border-radius: 30px; box-shadow: inset 0 0 60px #000; border: 2px solid #222; }
 
         .payphone-container { 
             background: var(--payphone-coral); background-image: url("https://transparenttextures.com");
@@ -53,7 +47,7 @@
             height: 85svh; aspect-ratio: 310 / 540; text-align: center; 
             box-shadow: 40px 50px 80px rgba(0,0,0,0.9);
             display: flex; flex-direction: column; justify-content: space-between;
-            pointer-events: auto; z-index: 10;
+            z-index: 10;
         }
 
         .phone-sign {
@@ -61,39 +55,36 @@
             box-shadow: 0 0 20px var(--off-white), inset 4px 4px 10px rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; height: 10%; border: 1px solid rgba(0,0,0,0.3);
         }
-        .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: clamp(0.8rem, 4vw, 1.2rem); width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue); white-space: nowrap; transform: scaleX(0.92); }
+        .sign-text { color: var(--sign-pink); font-family: 'Arial Black', Gadget, sans-serif; font-weight: 950; font-size: 1.1rem; width: 100%; letter-spacing: -1.6px; -webkit-text-stroke: 1px var(--lcd-blue); text-shadow: 2px 2px 0px var(--lcd-blue); white-space: nowrap; }
 
-        /* BIGGER LCD - 3 LINE MODE */
+        /* FIXED 12PT LCD */
         .lcd-display { 
             background: #001a1d; border: 4px solid #111;
-            padding: 20px 5px; height: 30%; 
-            color: var(--lcd-blue); 
-            text-shadow: 0 0 10px var(--lcd-glow); 
-            box-shadow: inset 10px 12px 25px rgba(0,0,0,1), inset -3px -3px 10px rgba(255,255,255,0.1), 0 4px 0 #ff9e7a; 
-            margin-bottom: 15px;
-            display: flex; flex-direction: column; justify-content: space-around;
-            overflow: hidden; position: relative;
+            padding: 15px 5px; height: 32%; 
+            color: var(--lcd-blue); text-shadow: 0 0 8px var(--lcd-glow); 
+            box-shadow: inset 10px 12px 25px rgba(0,0,0,1), 0 4px 0 #ff9e7a; 
+            margin-bottom: 15px; display: flex; flex-direction: column; justify-content: space-around;
+            overflow: hidden;
         }
 
-        /* Scanline effect */
-        .lcd-display::after {
-            content: " "; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            z-index: 2; background-size: 100% 4px; pointer-events: none;
-        }
-
-        .line-container, .nav-row { 
+        .lcd-line { 
             width: 100%; text-align: center; 
-            font-size: 14pt; /* INCREASED SIZE */
-            white-space: nowrap; overflow: hidden; z-index: 3;
+            font-size: 12pt; font-family: "Press Start 2P", system-ui;
+            line-height: 1.2; white-space: nowrap;
         }
 
-        .cradle-housing { background: #e0e0e0; background-image: var(--metallic-base); position: relative; padding: 8px; border-radius: 8px; border: 2px solid #444; width: 95%; align-self: center; box-shadow: 0 8px 20px rgba(0,0,0,0.6); cursor: pointer; z-index: 20; border-top: 2px solid #fff; border-left: 2px solid #ddd; border-right: 4px solid #444; border-bottom: 6px solid #222; }
-        .cradle-housing::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-image: var(--machined-lines); pointer-events:none; opacity: 0.4; }
-        .cradle-base { width: 100%; height: 60px; background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%); clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%); box-shadow: inset 0 20px 40px black; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5px; }
-        .receiver-text { color: #ddd; font-weight: 950; font-size: 0.8rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,255,255,0.4); white-space: nowrap; }
-        .flipper-container { position: absolute; left: 40%; top: 25px; width: 20%; height: 30px; transform-style: preserve-3d; transition: transform 0.5s ease; transform-origin: top center; z-index: 15; }
-        .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; background-image: var(--metallic-base); border: 1px solid #222; }
+        /* SILVER RECEIVER - High Priority Click Zone */
+        .cradle-housing { 
+            background: #e0e0e0; background-image: var(--metallic-base); position: relative; 
+            padding: 10px; border-radius: 8px; border: 2px solid #444; width: 95%; align-self: center; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); cursor: pointer; z-index: 999;
+            border-top: 2px solid #fff; border-bottom: 6px solid #222;
+        }
+        .cradle-base { width: 100%; height: 60px; background: linear-gradient(to bottom, #000 0%, #333 50%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5px; pointer-events: none; }
+        .receiver-text { color: #ddd; font-weight: 950; font-size: 0.75rem; letter-spacing: 1px; white-space: nowrap; }
+        
+        .flipper-container { position: absolute; left: 40%; top: 25px; width: 20%; height: 30px; transform-style: preserve-3d; transition: transform 0.5s ease; transform-origin: top center; pointer-events: none; }
+        .flipper-face { position: absolute; width: 100%; height: 100%; background: #d0d0d0; border: 1px solid #222; }
         .flipper-container.up { transform: rotateX(-35deg); }
 
         .controls-layout { display: grid; grid-template-columns: 1fr 180px 1fr; align-items: center; justify-content: center; width: 100%; margin-bottom: 5px; }
@@ -111,10 +102,10 @@
         <div class="payphone-container" id="main-unit">
             <div class="phone-sign"><span class="sign-text">OMAHA PAYPHONE PROJECT</span></div>
             <div class="lcd-display press-start-2p-regular" id="lcd">
-                <!-- REDUCED TO 3 LINES FOR MAXIMUM SIZE -->
-                <div id="line2" class="line-container press-start-2p-regular">LIFT RECEIVER</div>
-                <div id="line3" class="line-container press-start-2p-regular">DIAL ANY #</div>
-                <div id="line4" class="nav-row press-start-2p-regular">&nbsp;</div>
+                <div id="line1" class="lcd-line"></div>
+                <div id="line2" class="lcd-line">LIFT RECEIVER</div>
+                <div id="line3" class="lcd-line">LEVANTE EL</div>
+                <div id="line4" class="lcd-line">RECEPTOR</div>
             </div>
             <div class="cradle-housing" onclick="toggleHandset()">
                 <div class="cradle-base"><span class="receiver-text">RECEIVER / RECEPTOR</span></div>
