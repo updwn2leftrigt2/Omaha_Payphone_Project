@@ -1,5 +1,5 @@
 // --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlFURCvbZjT4NdWVpsYUiA6OsvxOPyJc2OP2yJ6xwAdDCr8Zwoq4juEQhHDowO1Yhicw/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvftBSqVh2B4OsfG6A-Z0NdfAQHSfzjzoU8ERxm5y2zkRm3UZx5N9AThrcLilGLFwfCw/exec";
 const audio = new Audio();
 const clickAudio = new Audio();
 audio.crossOrigin = "anonymous";
