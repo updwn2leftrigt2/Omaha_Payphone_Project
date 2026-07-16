@@ -122,7 +122,7 @@ let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 // --- REMOVED /mp3/ EXTENSION SUBFOLDER FROM STREAMING URI PATH ---
-const baseUrl = "https://archive.org";
+const baseUrl = "https://archive.org/details/0032_20260716";
 
 
 const ui = {
