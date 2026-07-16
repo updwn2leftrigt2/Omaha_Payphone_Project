@@ -22,7 +22,11 @@ function initAudioEngine() {
         compressor.connect(audioCtx.destination);
         compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
     }
-    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    audio.play().catch(() => {});
+    clickAudio.play().catch(() => {});
 }
 
 function playDialTone(digit) {
@@ -117,7 +121,7 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- PERFECTLY FORMATTED UNIVERSAL DOWNLOAD STREAMING ROOT PATH ENTRY ---
+// --- FIXED PUBLIC STREAMING ROUTE ---
 const baseUrl = "https://archive.org";
 
 const ui = {
@@ -125,7 +129,6 @@ const ui = {
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
-// --- SYSTEM COMPREHENSIVE CONFIGURATION DATA ARRAY ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
@@ -177,7 +180,7 @@ const directory = {
     49: { title: "The Ocelot", artist: "Winston F. Schneider" },
     100: { title: "WELCOME GREETING", artist: "SYSTEM" }, 
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM" } // Spanish Track target configured cleanly to 0102.mp3
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
 };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
@@ -205,14 +208,21 @@ function refreshDisplay() {
 }
 
 function toggleHandset() {
-    initAudioEngine(); isOffHook = !isOffHook;
+    initAudioEngine(); 
+    isOffHook = !isOffHook;
     const unit = document.getElementById('main-unit');
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {});
+    
+    clickAudio.src = baseUrl + "0099.mp3"; 
+    clickAudio.load();
+    clickAudio.play().catch(() => {});
+    
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
         if(f) f.classList.add('up');
         if(unit) unit.classList.add('handset-up'); 
-        isLanguageSelected = false; isReviewing = false; playTrack(100);
+        isLanguageSelected = false; isReviewing = false; 
+        
+        setTimeout(() => { playTrack(100); }, 100);
     } else {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; document.getElementById('key-hash').classList.remove('recording-active'); }
         if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
@@ -243,7 +253,7 @@ function press(key) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
-        else if (key === '*') { directoryOpen = false; playTrack(1); }
+        else if (key === '*') { isDirectoryOpen = false; playTrack(1); }
         return;
     }
     if (key === '#') { 
@@ -267,7 +277,6 @@ function press(key) {
 
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 
-// Bounds map calibrated safely to max index 49
 function playRandom() { 
     let r; 
     do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined); 
@@ -281,7 +290,7 @@ function playTrack(num) {
         
         audio.src = baseUrl + filename + ".mp3"; 
         audio.load(); 
-        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }); 
+        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Stream block caught:", e)); 
     }, 400); 
 }
 
