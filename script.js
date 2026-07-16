@@ -115,44 +115,46 @@ function uploadToDrive(blob) {
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
-const volLevels = [0.25, 0.50, 0.75, 1.0], baseUrl = "https://archive.org";
+const volLevels = [0.25, 0.50, 0.75, 1.0];
+
+// --- REDIRECTED TO V2 MASTER IDENTIFIER ---
+const baseUrl = "https://archive.org";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
-// --- DIRECTORY MAPPING (WITH RE-TITLED TRACK 43) ---
+// --- DIRECTORY MAPPING (WITH RE-MAPPED ALTERNATIVE ARCHIVE ALIASES) ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
-    2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
-    3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 
-    4: { title: "Madeleine", artist: "Amélie Raoul" }, 
+    2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
+    3: { title: "Moon Tune", artist: "Aly Peeler & Friends", file: "Moon Tune" }, 
+    4: { title: "Madeleine", artist: "Amélie Raoul", file: "Madeleine" }, 
     5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 
     6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 
     7: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)" }, 
     8: { title: "Alone.", artist: "Colton Schlines" }, 
     9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 
     10: { title: "2+1", artist: "Dead Poets" }, 
-    11: { title: "Childhood", artist: "Dereck Higgins" }, 
+    11: { title: "Childhood", artist: "Dereck Higgins", file: "04 Childhood" }, 
     12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)" }, 
-    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 
-    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL" }, 
-    15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 
-    16: { title: "May Queen", artist: "Hair Person" }, 
-    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve" }, 
+    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov", file: "Ocean" }, 
+    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL", file: "Løve Surrøunding" }, 
+    15: { title: "Son of the Soil", artist: "Gerard Pefung", file: "Son of the Soil" }, 
+    16: { title: "May Queen", artist: "Hair Person", file: "May Queen_tagalogv" }, 
+    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve", file: "Folk Song #3 (Darker)" }, 
     18: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)" }, 
     19: { title: "In Comes the Light", artist: "Jenelle Betterman" }, 
     20: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt" }, 
     21: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 
-    22: { title: "Racecar", artist: "Kevin Paradise" }, 
-    23: { title: "My Father Apologizes", artist: "Kimberly Nguyễn" }, 
-    24: { title: "Gbandjo", artist: "Kusher Snazzy" }, 
-    25: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 
-    26: { title: "For You & For Presence", artist: "Maritza N. Estrada" }, 
-    27: { title: "Shimmering", artist: "Mary Lawson" }, 
-    28: { title: "Amethyst", artist: "Melina" }, 
-    29: { title: "Here We Are. All Is Still.", artist: "Meredith Ann Fuller" }, 
+    22: { title: "My Father Apologizes", artist: "Kimberly Nguyễn" }, 
+    23: { title: "Gbandjo", artist: "Kusher Snazzy" }, 
+    24: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 
+    25: { title: "For You & For Presence", artist: "Maritza N. Estrada" }, 
+    26: { title: "Shimmering", artist: "Mary Lawson" }, 
+    27: { title: "Amethyst", artist: "Melina", file: "Amethyst" }, 
+    28: { title: "Here We Are. All Is Still.", artist: "Meredith Ann Fuller" }, 
     30: { title: "An Act of Naming", artist: "Natasha Kessler" }, 
     31: { title: "Critic", artist: "Ol' Mo & Varmints" }, 
     32: { title: "A la", artist: "PSS (Pearl, Steve, Susan)" }, 
@@ -165,16 +167,17 @@ const directory = {
     39: { title: "Leaving the Brand Inspection Area", artist: "Spencer Wedberg" }, 
     40: { title: "The Debt", artist: "Spencer Wedberg" }, 
     41: { title: "FU Babies", artist: "Stacey Barelos" }, 
-    42: { title: "To the Broken Few", artist: "Stolen Wolves" }, 
+    42: { title: "To the Broken Few", artist: "Stolen Wolves", file: "Stolen Wolves - To the Broken Few" }, 
     43: { title: "7.12.26", artist: "Tessa V. Wedberg" }, 
-    44: { title: "Hold On", artist: "The Mynabirds" }, 
+    44: { title: "Hold On", artist: "The Mynabirds", file: "08 Hold On" }, 
     45: { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson" }, 
     46: { title: "Against Distance", artist: "Trey Moody" }, 
-    47: { title: "All Nighter", artist: "UN-T.I.L." }, 
+    47: { title: "All Nighter", artist: "UN-T.I.L.", file: "All Nighter" }, 
     48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
-    49: { title: "The Ocelot", artist: "Winston F. Schneider" }
+    49: { title: "The Ocelot", artist: "Winston F. Schneider" },
+    101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
 };
-
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id); if (!el) return;
@@ -184,7 +187,7 @@ function writeLine(id, text, forceScroll = false) {
 }
 
 function updateLCD(l2, l3, l4) { 
-    let f = (currentTrackNum > 1 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; 
+    let f = (currentTrackNum > 1 && currentTrackNum < 100 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; 
     writeLine('line2', l2, f); writeLine('line3', l3, f); writeLine('line4', l4); 
 }
 
@@ -193,8 +196,8 @@ function refreshDisplay() {
     if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
     else if (isDirectoryOpen) showDirectoryEntry();
     else if (isReviewing) updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
-    else if (currentTrackNum === 1 && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
-    else if (currentTrackNum > 1 && inputString === "") { 
+    else if ((currentTrackNum === 1 || currentTrackNum > 100) && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
+    else if (currentTrackNum > 1 && currentTrackNum < 100 && inputString === "") { 
         const t = directory[currentTrackNum];
         updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); 
     }
@@ -222,8 +225,8 @@ function toggleHandset() {
 function press(key) {
     if (!isOffHook) return; triggerRecoil('micro'); playDialTone(key);
     if (!isLanguageSelected) {
-        if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(1); }
-        else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(1); }
+        if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(101); }
+        else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(102); }
         return;
     }
     if (isReviewing) {
@@ -235,7 +238,6 @@ function press(key) {
     if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
     
-    // Bounds tracking dynamically calculated for max 49 items
     if (isDirectoryOpen) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
@@ -257,7 +259,7 @@ function press(key) {
     else { 
         inputString += key; updateLCD("DIALING...", inputString, "PRESS # TO CALL"); 
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { 
-            cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; } }, 1000); 
+            cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 2 && currentTrackNum < 100 ? currentTrackNum - 1 : 49); else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; } }, 1000); 
         } 
     }
 }
@@ -270,9 +272,21 @@ function playRandom() {
     playTrack(r); 
 }
 
+// --- DYNAMIC TRACK RESOLVER FOR EXTENDED AND STANDARDIZED NAMING CONVENTIONS ---
 function playTrack(num) {
-    currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { audio.src = baseUrl + num.toString().padStart(4, '0') + ".mp3"; audio.load(); audio.play().then(() => { if (num !== 1 && num !== 100) refreshDisplay(); }); }, 400);
+    currentTrackNum = num; audio.pause(); 
+    if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); 
+    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); 
+    refreshDisplay(); 
+    
+    setTimeout(() => { 
+        const trackData = directory[num];
+        const filename = (trackData && trackData.file) ? trackData.file : num.toString().padStart(4, '0');
+        
+        audio.src = baseUrl + filename + ".mp3"; 
+        audio.load(); 
+        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }); 
+    }, 400); 
 }
 
 function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; playVolumeChirp(volIndex); updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
-
