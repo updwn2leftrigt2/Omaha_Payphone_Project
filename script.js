@@ -127,16 +127,62 @@ const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-// Directory mapping (abbreviated for safety)
+// --- SYSTEM COMPREHENSIVE CONFIGURATION DATA ARRAY ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM", file: "0001" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
-    // ... items 3-49 omitted for brevity ...
-    49: { title: "The Ocelot", artist: "Winston F. Schneider", file: "0049" },
-    100: { title: "WELCOME GREETING", artist: "SYSTEM", file: "0100" }, 
-    101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM", file: "0101" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM", file: "0102" }
+    3: { title: "Moon Tune", artist: "Aly Peeler & Friends", file: "Moon Tune" }, 
+    4: { title: "Madeleine", artist: "Amélie Raoul", file: "Madeleine" }, 
+    5: { title: "Bottom of the Cup", artist: "Amy Haddad", file: "0005" }, 
+    6: { title: "Drink Your Tea", artist: "Angelica Perez", file: "0006" }, 
+    7: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)", file: "0007" }, 
+    8: { title: "Alone.", artist: "Colton Schlines", file: "0008" }, 
+    9: { title: "The Peace (A Cappella)", artist: "Conny Franko", file: "0009" }, 
+    10: { title: "2+1", artist: "Dead Poets", file: "0010" }, 
+    11: { title: "Childhood", artist: "Dereck Higgins", file: "04 Childhood" }, 
+    12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)", file: "0012" }, 
+    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov", file: "Ocean" }, 
+    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL", file: "Løve Surrøunding" }, 
+    15: { title: "Son of the Soil", artist: "Gerard Pefung", file: "Son of the Soil" }, 
+    16: { title: "May Queen", artist: "Hair Person", file: "May Queen_tagalogv" }, 
+    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve", file: "Folk Song #3 (Darker)" }, 
+    18: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)", file: "0018" }, 
+    19: { title: "In Comes the Light", artist: "Jenelle Betterman", file: "0019" }, 
+    20: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt", file: "0020" }, 
+    21: { title: "A Single Refugee Mom", artist: "Kam Bany", file: "0021" }, 
+    22: { title: "My Father Apologizes", artist: "Kimberly Nguyễn", file: "0022" }, 
+    23: { title: "Gbandjo", artist: "Kusher Snazzy", file: "0023" }, 
+    24: { title: "Pidgin", artist: "Lindsey Anne Baker", file: "0024" }, 
+    25: { title: "For You & For Presence", artist: "Maritza N. Estrada", file: "0025" }
 };
+// --- SYSTEM COMPREHENSIVE CONFIGURATION DATA ARRAY (CONTINUED) ---
+// We append the remaining directory items directly to the object here
+directory[26] = { title: "Shimmering", artist: "Mary Lawson", file: "0026" };
+directory[27] = { title: "Amethyst", artist: "Melina", file: "Amethyst" };
+directory[28] = { title: "Here We Are. All Is Still.", artist: "Meredith Ann Fuller", file: "0028" };
+directory[30] = { title: "An Act of Naming", artist: "Natasha Kessler", file: "0030" };
+directory[31] = { title: "Critic", artist: "Ol' Mo & Varmints", file: "0031" };
+directory[32] = { title: "A la", artist: "PSS (Pearl, Steve, Susan)", file: "0032" };
+directory[33] = { title: "“Snow Song”", artist: "Rayni Wekluk", file: "0033" };
+directory[34] = { title: "GLOW", artist: "Renca Dunn", file: "0034" };
+directory[35] = { title: "Unconditional Blues", artist: "Renzellous Brown", file: "0035" };
+directory[36] = { title: "Edgy Refugee", artist: "Rosine Selemani", file: "0036" };
+directory[37] = { title: "Excerpt: Bright Star", artist: "Sarah Rowe", file: "0037" };
+directory[38] = { title: "Folks", artist: "Sgt. Leisure", file: "0038" };
+directory[39] = { title: "Leaving the Brand Inspection Area", artist: "Spencer Wedberg", file: "0039" };
+directory[40] = { title: "The Debt", artist: "Spencer Wedberg", file: "0040" };
+directory[41] = { title: "FU Babies", artist: "Stacey Barelos", file: "0041" };
+directory[42] = { title: "To the Broken Few", artist: "Stolen Wolves", file: "Stolen Wolves - To the Broken Few" };
+directory[43] = { title: "7.12.26", artist: "Tessa V. Wedberg", file: "0043" };
+directory[44] = { title: "Hold On", artist: "The Mynabirds", file: "08 Hold On" };
+directory[45] = { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson", file: "0045" };
+directory[46] = { title: "Against Distance", artist: "Trey Moody", file: "0046" };
+directory[47] = { title: "All Nighter", artist: "UN-T.I.L.", file: "All Nighter" };
+directory[48] = { title: "To Word Counts", artist: "Victoria Bogatz", file: "0048" };
+directory[49] = { title: "The Ocelot", artist: "Winston F. Schneider", file: "0049" };
+directory[100] = { title: "WELCOME GREETING", artist: "SYSTEM", file: "0100" };
+directory[101] = { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM", file: "0101" };
+directory[102] = { title: "INSTRUCCIONES", artist: "SYSTEM", file: "0102" };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id); if (!el) return;
@@ -163,20 +209,14 @@ function refreshDisplay() {
 }
 
 function toggleHandset() {
-    initAudioEngine(); 
-    isOffHook = !isOffHook;
+    initAudioEngine(); isOffHook = !isOffHook;
     const unit = document.getElementById('main-unit');
-    
-    clickAudio.src = baseUrl + "0099.mp3"; 
-    clickAudio.load();
-    clickAudio.play().catch(() => {});
-    
+    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.load(); clickAudio.play().catch(() => {});
     const f = document.getElementById('handset-flipper');
     if (isOffHook) {
         if(f) f.classList.add('up');
         if(unit) unit.classList.add('handset-up'); 
         isLanguageSelected = false; isReviewing = false; 
-        
         setTimeout(() => { playTrack(100); }, 100);
     } else {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; document.getElementById('key-hash').classList.remove('recording-active'); }
