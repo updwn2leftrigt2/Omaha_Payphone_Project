@@ -121,68 +121,67 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- REMOVED /mp3/ EXTENSION SUBFOLDER FROM STREAMING URI PATH ---
-const baseUrl = "https://archive.org/details/0032_20260716";
-
+// --- PRISTINE MASTER WORKSPACE CDN LINK CONFIGURATION ---
+const baseUrl = "https://archive.org/details/payphoneprojecttracks";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-// --- COMPREHENSIVE DIRECTORY DATA LAYER ---
+// --- METADATA DIRECTORY MAPPING ---
 const directory = { 
-    1: { title: "DIAL TONE", artist: "SYSTEM", file: "0001" }, 
-    2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "0002" }, 
-    3: { title: "Moon Tune", artist: "Aly Peeler & Friends", file: "0003" }, 
-    4: { title: "Madeleine", artist: "Amélie Raoul", file: "0004" }, 
-    5: { title: "Bottom of the Cup", artist: "Amy Haddad", file: "0005" }, 
-    6: { title: "Drink Your Tea", artist: "Angelica Perez", file: "0006" }, 
-    7: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)", file: "0007" }, 
-    8: { title: "Alone.", artist: "Colton Schlines", file: "0008" }, 
-    9: { title: "The Peace (A Cappella)", artist: "Conny Franko", file: "0009" }, 
-    10: { title: "2+1", artist: "Dead Poets", file: "0010" }, 
-    11: { title: "Childhood", artist: "Dereck Higgins", file: "011" }, // SERVER FIX: Maps directly to drop-zero folder entry 
-    12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)", file: "0012" }, 
-    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov", file: "0013" }, 
-    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL", file: "0014" }, 
-    15: { title: "Son of the Soil", artist: "Gerard Pefung", file: "0015" }, 
-    16: { title: "May Queen", artist: "Hair Person", file: "0016" }, 
-    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve", file: "0017" }, 
-    18: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)", file: "0018" }, 
-    19: { title: "In Comes the Light", artist: "Jenelle Betterman", file: "0019" }, 
-    20: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt", file: "0020" }, 
-    21: { title: "A Single Refugee Mom", artist: "Kam Bany", file: "0021" }, 
-    22: { title: "My Father Apologizes", artist: "Kimberly Nguyễn", file: "0022" }, 
-    23: { title: "Gbandjo", artist: "Kusher Snazzy", file: "0023" }, 
-    24: { title: "Pidgin", artist: "Lindsey Anne Baker", file: "0024" }, 
-    25: { title: "For You & For Presence", artist: "Maritza N. Estrada", file: "0025" },
-    26: { title: "Shimmering", artist: "Mary Lawson", file: "0026" }, 
-    27: { title: "Amethyst", artist: "Melina", file: "0027" }, 
-    28: { title: "Here We Are. All Is Still.", artist: "Meredith Ann Fuller", file: "0028" }, 
-    29: { title: "An Act of Naming", artist: "Natasha Kessler", file: "0029" }, 
-    30: { title: "Critic", artist: "Ol' Mo & Varmints", file: "0030" }, 
-    31: { title: "A la", artist: "PSS (Pearl, Steve, Susan)", file: "0031" }, 
-    32: { title: "“Snow Song”", artist: "Rayni Wekluk", file: "0032" }, 
-    33: { title: "GLOW", artist: "Renca Dunn", file: "0033" }, 
-    34: { title: "Unconditional Blues", artist: "Renzellous Brown", file: "0034" }, 
-    35: { title: "Edgy Refugee", artist: "Rosine Selemani", file: "0035" }, 
-    36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe", file: "0036" }, 
-    37: { title: "Folks", artist: "Sgt. Leisure", file: "0037" }, 
-    38: { title: "Leaving the Brand Inspection Area", artist: "Spencer Wedberg", file: "0038" }, 
-    39: { title: "The Debt", artist: "Spencer Wedberg" , file: "0039" }, 
-    40: { title: "FU Babies", artist: "Stacey Barelos", file: "0040" }, 
-    41: { title: "To the Broken Few", artist: "Stolen Wolves", file: "0041" }, 
-    42: { title: "7.12.26", artist: "Tessa V. Wedberg", file: "0042" }, 
-    43: { title: "Hold On", artist: "The Mynabirds", file: "0043" }, 
-    44: { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson" , file: "0044" }, 
-    45: { title: "Against Distance", artist: "Trey Moody", file: "0045" }, 
-    46: { title: "All Nighter", artist: "UN-T.I.L.", file: "0046" }, 
-    47: { title: "To Word Counts", artist: "Victoria Bogatz", file: "0047" }, 
-    48: { title: "The Ocelot", artist: "Winston F. Schneider", file: "0048" },
-    49: { title: "SYSTEM GREETER", artist: "SYSTEM", file: "0049" },
-    100: { title: "WELCOME GREETING", artist: "SYSTEM", file: "0100" }, 
-    101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM", file: "0101" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM" , file: "0102" }
+    1: { title: "DIAL TONE", artist: "SYSTEM" }, 
+    2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
+    3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 
+    4: { title: "Madeleine", artist: "Amélie Raoul" }, 
+    5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 
+    6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 
+    7: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)" }, 
+    8: { title: "Alone.", artist: "Colton Schlines" }, 
+    9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 
+    10: { title: "2+1", artist: "Dead Poets" }, 
+    11: { title: "Childhood", artist: "Dereck Higgins" }, 
+    12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)" }, 
+    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 
+    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL" }, 
+    15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 
+    16: { title: "May Queen", artist: "Hair Person" }, 
+    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve" }, 
+    18: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)" }, 
+    19: { title: "In Comes the Light", artist: "Jenelle Betterman" }, 
+    20: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt" }, 
+    21: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 
+    22: { title: "My Father Apologizes", artist: "Kimberly Nguyễn" }, 
+    23: { title: "Gbandjo", artist: "Kusher Snazzy" }, 
+    24: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 
+    25: { title: "For You & For Presence", artist: "Maritza N. Estrada" }, 
+    26: { title: "Shimmering", artist: "Mary Lawson" }, 
+    27: { title: "Amethyst", artist: "Melina" }, 
+    28: { title: "Here We Are. All Is Still.", artist: "Meredith Ann Fuller" }, 
+    29: { title: "An Act of Naming", artist: "Natasha Kessler" }, 
+    30: { title: "Critic", artist: "Ol' Mo & Varmints" }, 
+    31: { title: "A la", artist: "PSS (Pearl, Steve, Susan)" }, 
+    32: { title: "“Snow Song”", artist: "Rayni Wekluk" }, 
+    33: { title: "GLOW", artist: "Renca Dunn" }, 
+    34: { title: "Unconditional Blues", artist: "Renzellous Brown" }, 
+    35: { title: "Edgy Refugee", artist: "Rosine Selemani" }, 
+    36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe" }, 
+    37: { title: "Folks", artist: "Sgt. Leisure" }, 
+    38: { title: "Leaving the Brand Inspection Area", artist: "Spencer Wedberg" }, 
+    39: { title: "The Debt", artist: "Spencer Wedberg" }, 
+    40: { title: "FU Babies", artist: "Stacey Barelos" }, 
+    41: { title: "To the Broken Few", artist: "Stolen Wolves" }, 
+    42: { title: "7.12.26", artist: "Tessa V. Wedberg" }, 
+    43: { title: "Hold On", artist: "The Mynabirds" }, 
+    44: { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson" }, 
+    45: { title: "Against Distance", artist: "Trey Moody" }, 
+    46: { title: "All Nighter", artist: "UN-T.I.L." }, 
+    47: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
+    48: { title: "The Ocelot", artist: "Winston F. Schneider" },
+    49: { title: "SYSTEM GREETER", artist: "SYSTEM" },
+    100: { title: "WELCOME GREETING", artist: "SYSTEM" }, 
+    101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
 };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
@@ -281,12 +280,8 @@ function playRandom() {
 
 function playTrack(num) {
     currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
-        const trackData = directory[num];
-        let filename = (trackData && trackData.file) ? trackData.file : num.toString().padStart(4, '0');
-        
-        if (!filename.endsWith(".mp3")) {
-            filename += ".mp3";
-        }
+        // Pristine lookup defaults cleanly to sequential padding values
+        const filename = num.toString().padStart(4, '0') + ".mp3";
         
         audio.src = baseUrl + filename; 
         audio.load(); 
