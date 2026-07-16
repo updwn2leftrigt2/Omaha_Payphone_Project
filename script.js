@@ -117,15 +117,15 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- REDIRECTED TO V2 MASTER IDENTIFIER ---
-const baseUrl = "https://archive.org/details/0032_20260716";
+// --- MASTER LINK TO PLAYLIST COLLECTION ---
+const baseUrl = "https://archive.org";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
-// --- DIRECTORY MAPPING (WITH RE-MAPPED ALTERNATIVE ARCHIVE ALIASES) ---
+// --- COMPREHENSIVE SYSTEM CONFIGURATION MAP ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
@@ -175,6 +175,7 @@ const directory = {
     47: { title: "All Nighter", artist: "UN-T.I.L.", file: "All Nighter" }, 
     48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
     49: { title: "The Ocelot", artist: "Winston F. Schneider" },
+    100: { title: "WELCOME GREETING", artist: "SYSTEM" }, // Formally mapped track 100
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
     102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
 };
@@ -272,14 +273,8 @@ function playRandom() {
     playTrack(r); 
 }
 
-// --- DYNAMIC TRACK RESOLVER FOR EXTENDED AND STANDARDIZED NAMING CONVENTIONS ---
 function playTrack(num) {
-    currentTrackNum = num; audio.pause(); 
-    if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); 
-    clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); 
-    refreshDisplay(); 
-    
-    setTimeout(() => { 
+    currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
         const trackData = directory[num];
         const filename = (trackData && trackData.file) ? trackData.file : num.toString().padStart(4, '0');
         
