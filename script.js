@@ -118,7 +118,7 @@ let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
 // --- REDIRECTED TO V2 MASTER IDENTIFIER ---
-const baseUrl = "https://archive.org";
+const baseUrl = "https://archive.org/details/0032_20260716";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
