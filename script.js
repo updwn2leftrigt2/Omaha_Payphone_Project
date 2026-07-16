@@ -121,14 +121,14 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- PRISTINE MASTER WORKSPACE CDN LINK CONFIGURATION ---
-const baseUrl = "https://archive.org/details/payphoneprojecttracks";
+// --- LOCAL ROUTING SHORTCUT FIXED ---
+const baseUrl = "./";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-// --- METADATA DIRECTORY MAPPING ---
+// --- METADATA DIRECTORY MAP ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
@@ -280,12 +280,11 @@ function playRandom() {
 
 function playTrack(num) {
     currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
-        // Pristine lookup defaults cleanly to sequential padding values
         const filename = num.toString().padStart(4, '0') + ".mp3";
         
         audio.src = baseUrl + filename; 
         audio.load(); 
-        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Stream block caught:", e)); 
+        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Local path stream caught:", e)); 
     }, 400); 
 }
 
