@@ -121,14 +121,14 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// Secure Server CDN Direct Streaming Path Shortcut
+// --- REMOVED /mp3/ EXTENSION SUBFOLDER FROM STREAMING URI PATH ---
 const baseUrl = "https://archive.org";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-// --- COMPLETE SYSTEM METADATA DIRECTORY MAP ---
+// --- COMPREHENSIVE DIRECTORY DATA LAYER ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM", file: "0001" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "0002" }, 
@@ -140,7 +140,7 @@ const directory = {
     8: { title: "Alone.", artist: "Colton Schlines", file: "0008" }, 
     9: { title: "The Peace (A Cappella)", artist: "Conny Franko", file: "0009" }, 
     10: { title: "2+1", artist: "Dead Poets", file: "0010" }, 
-    11: { title: "Childhood", artist: "Dereck Higgins", file: "011" }, // SERVER FIX: Handles custom zero abbreviation anomaly
+    11: { title: "Childhood", artist: "Dereck Higgins", file: "011" }, // SERVER FIX: Maps directly to drop-zero folder entry 
     12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)", file: "0012" }, 
     13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov", file: "0013" }, 
     14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL", file: "0014" }, 
@@ -164,7 +164,7 @@ const directory = {
     32: { title: "“Snow Song”", artist: "Rayni Wekluk", file: "0032" }, 
     33: { title: "GLOW", artist: "Renca Dunn", file: "0033" }, 
     34: { title: "Unconditional Blues", artist: "Renzellous Brown", file: "0034" }, 
-    35: { title: "Edgy Refugee", artist: "Rosine Selemani", file: "0035.mp3" }, // SERVER FIX: Patches double file extension anomaly
+    35: { title: "Edgy Refugee", artist: "Rosine Selemani", file: "0035" }, 
     36: { title: "Excerpt: Bright Star", artist: "Sarah Rowe", file: "0036" }, 
     37: { title: "Folks", artist: "Sgt. Leisure", file: "0037" }, 
     38: { title: "Leaving the Brand Inspection Area", artist: "Spencer Wedberg", file: "0038" }, 
@@ -181,7 +181,7 @@ const directory = {
     49: { title: "SYSTEM GREETER", artist: "SYSTEM", file: "0049" },
     100: { title: "WELCOME GREETING", artist: "SYSTEM", file: "0100" }, 
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM", file: "0101" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM", file: "0102" }
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" , file: "0102" }
 };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
