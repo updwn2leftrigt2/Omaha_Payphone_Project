@@ -117,7 +117,7 @@ let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, curr
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- MASTER LINK TO PLAYLIST COLLECTION ---
+// --- PERFECTLY FORMATTED UNIVERSAL DOWNLOAD STREAMING ROOT PATH ENTRY ---
 const baseUrl = "https://archive.org";
 
 const ui = {
@@ -125,7 +125,7 @@ const ui = {
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
-// --- COMPREHENSIVE SYSTEM CONFIGURATION MAP ---
+// --- SYSTEM COMPREHENSIVE CONFIGURATION DATA ARRAY ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
@@ -175,9 +175,9 @@ const directory = {
     47: { title: "All Nighter", artist: "UN-T.I.L.", file: "All Nighter" }, 
     48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
     49: { title: "The Ocelot", artist: "Winston F. Schneider" },
-    100: { title: "WELCOME GREETING", artist: "SYSTEM" }, // Formally mapped track 100
+    100: { title: "WELCOME GREETING", artist: "SYSTEM" }, 
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" } // Spanish Track target configured cleanly to 0102.mp3
 };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
@@ -243,7 +243,7 @@ function press(key) {
         if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
         else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
-        else if (key === '*') { isDirectoryOpen = false; playTrack(1); }
+        else if (key === '*') { directoryOpen = false; playTrack(1); }
         return;
     }
     if (key === '#') { 
@@ -267,6 +267,7 @@ function press(key) {
 
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 
+// Bounds map calibrated safely to max index 49
 function playRandom() { 
     let r; 
     do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined); 
