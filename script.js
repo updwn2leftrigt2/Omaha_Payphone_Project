@@ -122,6 +122,7 @@ const ui = {
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
 
+// --- DIRECTORY MAPPING (WITH RE-TITLED TRACK 43) ---
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
@@ -165,12 +166,13 @@ const directory = {
     40: { title: "The Debt", artist: "Spencer Wedberg" }, 
     41: { title: "FU Babies", artist: "Stacey Barelos" }, 
     42: { title: "To the Broken Few", artist: "Stolen Wolves" }, 
-    43: { title: "Hold On", artist: "The Mynabirds" }, 
-    44: { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson" }, 
-    45: { title: "Against Distance", artist: "Trey Moody" }, 
-    46: { title: "All Nighter", artist: "UN-T.I.L." }, 
-    47: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
-    48: { title: "The Ocelot", artist: "Winston F. Schneider" }
+    43: { title: "7.12.26", artist: "Tessa V. Wedberg" }, 
+    44: { title: "Hold On", artist: "The Mynabirds" }, 
+    45: { title: "An Agnostic Maps Gods Own Country", artist: "Todd Robinson" }, 
+    46: { title: "Against Distance", artist: "Trey Moody" }, 
+    47: { title: "All Nighter", artist: "UN-T.I.L." }, 
+    48: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
+    49: { title: "The Ocelot", artist: "Winston F. Schneider" }
 };
 
 // --- 6. DISPLAY ENGINE ---
@@ -232,23 +234,39 @@ function press(key) {
     }
     if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
+    
+    // Bounds tracking dynamically calculated for max 49 items
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 48; showDirectoryEntry(); }
-        else if (key === '8') { directoryIndex = (directoryIndex < 48) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
+        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
+        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
         else if (key === '*') { isDirectoryOpen = false; playTrack(1); }
         return;
     }
-    if (key === '#') { if (inputString === "402") { audio.pause(); startRecording(); } else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); } else { const d = parseInt(inputString); if (directory[d]) playTrack(d); else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); } } inputString = ""; } 
+    if (key === '#') { 
+        if (inputString === "402") { audio.pause(); startRecording(); } 
+        else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); } 
+        else { 
+            const d = parseInt(inputString); 
+            if (directory[d]) playTrack(d); 
+            else { updateLCD(ui[currentLang].inv, inputString, " "); setTimeout(refreshDisplay, 1500); } 
+        } 
+        inputString = ""; 
+    } 
     else if (key === '*') { inputString = ""; playTrack(1); } 
-    else { inputString += key; updateLCD("DIALING...", inputString, "PRESS # TO CALL"); if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 48); else if (key === '6') playTrack(currentTrackNum < 48 ? currentTrackNum + 1 : 2); inputString = ""; } }, 1000); } }
+    else { 
+        inputString += key; updateLCD("DIALING...", inputString, "PRESS # TO CALL"); 
+        if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { 
+            cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 2 ? currentTrackNum - 1 : 49); else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; } }, 1000); 
+        } 
+    }
 }
 
 function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`${directoryIndex.toString().padStart(2,'0')} ${e.artist}`, e.title, ui[currentLang].dn); }
 
 function playRandom() { 
     let r; 
-    do { r = Math.floor(Math.random() * 47) + 2; } while (directory[r] === undefined); 
+    do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined); 
     playTrack(r); 
 }
 
@@ -257,3 +275,4 @@ function playTrack(num) {
 }
 
 function cycleVolume() { triggerRecoil('micro'); volIndex = (volIndex + 1) % volLevels.length; audio.volume = volLevels[volIndex]; playVolumeChirp(volIndex); updateLCD("VOLUME LEVEL", "I".repeat(volIndex + 1), " "); setTimeout(() => { if (isOffHook) refreshDisplay(); }, 1500); }
+
