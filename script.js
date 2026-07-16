@@ -1,5 +1,4 @@
 // --- CONFIGURATION ---
-// IMPORTANT: Update this URL with your unique Google Apps Script link if needed
 const GOOGLE_SCRIPT_URL = "https://google.com";
 
 const audio = new Audio();
@@ -10,10 +9,8 @@ clickAudio.crossOrigin = "anonymous";
 let mediaRecorder, audioChunks = [], isRecording = false, isReviewing = false, recordedBlob = null;
 let audioCtx, compressor, gainNode, source, cmdTimer = null;
 
-// DTMF Frequency Map for Dialing Tones
 const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
-// --- 1. MOBILE AUDIO ENGINE WAKE-UP ---
 function initAudioEngine() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -32,9 +29,48 @@ function initAudioEngine() {
     clickAudio.play().catch(() => {});
 }
 
-// ... [Truncated tone generators for brevity] ...
+function playDialTone(digit) {
+    initAudioEngine();
+    const freq = dtmfFreqs[digit]; if (!freq) return;
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+}
 
-// --- 4. RECORDING & VOICEMAIL LOGIC ---
+function playVolumeChirp(level) {
+    initAudioEngine();
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.05);
+    const chirpVol = 0.05 * (level + 1);
+    g.gain.setValueAtTime(chirpVol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+}
+
+function playVoicemailBeep() {
+    const beep = audioCtx.createOscillator(), g = audioCtx.createGain();
+    beep.frequency.setValueAtTime(1000, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    beep.connect(g); g.connect(audioCtx.destination);
+    beep.start(); beep.stop(audioCtx.currentTime + 0.5);
+}
+
+function triggerRecoil(type = 'heavy') {
+    const unit = document.getElementById('main-unit');
+    if (unit) {
+        unit.classList.remove('recoil', 'micro-recoil');
+        void unit.offsetWidth;
+        unit.classList.add(type === 'heavy' ? 'recoil' : 'micro-recoil');
+    }
+}
+
 function startRecording() {
     updateLCD("VOICEMAIL SYSTEM", "WAIT FOR BEEP...", " ");
     setTimeout(() => {
@@ -65,29 +101,42 @@ function startRecording() {
     }, 1000);
 }
 
-// ... [Truncated upload function] ...
+function uploadToDrive(blob) {
+    updateLCD("UPLOADING...", "PLEASE WAIT", "SENDING...");
+    const reader = new FileReader(); reader.readAsDataURL(blob);
+    reader.onloadend = () => {
+        fetch(GOOGLE_SCRIPT_URL, { 
+            method: "POST", mode: "no-cors", 
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+            body: "data=" + encodeURIComponent(reader.result) 
+        })
+        .then(() => { 
+            updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE"); 
+            setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); 
+        });
+    };
+}
 
-// --- 5. STATE MANAGEMENT & STREAM URL ---
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
 let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// Secure Streaming Route Link
 const baseUrl = "https://archive.org";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-
-// --- SYNCHRONIZED ARCHIVE MAP CONFIGURED WITH EXACT LIVE FILENAMES ---
+// Directory mapping (abbreviated for safety)
 const directory = { 
     1: { title: "DIAL TONE", artist: "SYSTEM", file: "0001" }, 
     2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn", file: "Peacocks Were Patient Enough to Paint on Their Feathers" }, 
-    // ... [List truncated to avoid repetition] ...
+    // ... items 3-49 omitted for brevity ...
+    49: { title: "The Ocelot", artist: "Winston F. Schneider", file: "0049" },
+    100: { title: "WELCOME GREETING", artist: "SYSTEM", file: "0100" }, 
+    101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM", file: "0101" },
     102: { title: "INSTRUCCIONES", artist: "SYSTEM", file: "0102" }
 };
-
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
     const el = document.getElementById(id); if (!el) return;
