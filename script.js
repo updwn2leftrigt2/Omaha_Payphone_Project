@@ -1,5 +1,5 @@
 // --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = "https://google.com";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylSiBR4aZnANjlSDJLneav5rXZJlFzofnaRSUwhY-oA84bvwzZPUR24CREMqXJXUAOaw/exec";
 
 const audio = new Audio();
 const clickAudio = new Audio();
