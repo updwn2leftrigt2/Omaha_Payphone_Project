@@ -8,6 +8,7 @@ clickAudio.crossOrigin = "anonymous";
 
 let mediaRecorder, audioChunks = [], isRecording = false, isReviewing = false, recordedBlob = null;
 let audioCtx, compressor, gainNode, source, cmdTimer = null;
+let stateChangeLock = false; // DEBOUNCE FLAG: Prevents button actions from overlapping during recording states
 
 const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
@@ -93,6 +94,9 @@ function startRecording() {
                     recordedBlob = new Blob(audioChunks, { type: supportedType }); 
                     isReviewing = true;
                     updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
+                    
+                    // Unlock buttons safely after a 500ms debounce buffer window
+                    setTimeout(() => { stateChangeLock = false; }, 500);
                 };
                 mediaRecorder.start();
                 updateLCD("How do you envision Omaha in the next 5 years?", "RED KEY TO STOP", "● RECORDING");
@@ -112,45 +116,45 @@ function uploadToDrive(blob) {
         })
         .then(() => { 
             updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE"); 
-            setTimeout(() => { if(isOffHook) playTrack(1); }, 2000); 
+            setTimeout(() => { if(isOffHook) playTrack(0); }, 2000);
         });
     };
 }
 
 let isOffHook = false, isDirectoryOpen = false, isLanguageSelected = false, currentLang = 'en', inputString = "";
-let currentTrackNum = 1, directoryIndex = 1, volIndex = 1;
+let currentTrackNum = 0, directoryIndex = 1, volIndex = 1;
 const volLevels = [0.25, 0.50, 0.75, 1.0];
 
-// --- LOCAL ROUTING SHORTCUT FIXED ---
 const baseUrl = "./";
 
 const ui = {
     en: { d: "DIAL ARTIST #", r: "DIAL 5 FOR RANDOM", dual: "DIR:00# | MSJ:402#", nav: "4:< 5:RANDOM 6:> *:MENU", dn: "2:^ 8:v #:PLAY *:MENU", inv: "INVALID" },
     es: { d: "MARQUE NUMERO", r: "MARQUE 5 AL AZAR", dual: "DIR:00# | MSJ:402#", nav: "4:< ANT 5:AZAR 6:> SIG", dn: "2:^ 8:v #:TOCAR *:MENU", inv: "INVALIDO" }
 };
-// --- METADATA DIRECTORY MAP ---
+// --- EXACT 1-TO-48 DIRECTORY LAYOUT DATA ARRAY ---
 const directory = { 
-    1: { title: "DIAL TONE", artist: "SYSTEM" }, 
-    2: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
-    3: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 
-    4: { title: "Madeleine", artist: "Amélie Raoul" }, 
-    5: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 
-    6: { title: "Drink Your Tea", artist: "Angelica Perez" }, 
-    7: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)" }, 
-    8: { title: "Alone.", artist: "Colton Schlines" }, 
-    9: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 
-    10: { title: "2+1", artist: "Dead Poets" }, 
-    11: { title: "Childhood", artist: "Dereck Higgins" }, 
-    12: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)" }, 
-    13: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 
-    14: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL" }, 
-    15: { title: "Son of the Soil", artist: "Gerard Pefung" }, 
-    16: { title: "May Queen", artist: "Hair Person" }, 
-    17: { title: "FOLK SONG #3", artist: "Higgins/Twelve" }, 
-    18: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)" }, 
-    19: { title: "In Comes the Light", artist: "Jenelle Betterman" }, 
-    20: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt" }, 
-    21: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 
+    0: { title: "DIAL TONE", artist: "SYSTEM" }, 
+    1: { title: "Peacocks Were Patient...", artist: "Alina Nguyễn" }, 
+    2: { title: "Moon Tune", artist: "Aly Peeler & Friends" }, 
+    3: { title: "Madeleine", artist: "Amélie Raoul" }, 
+    4: { title: "Bottom of the Cup", artist: "Amy Haddad" }, 
+    5: { title: "Drink Your Tea", artist: "Angelica Perez" }, 
+    6: { title: "Who's Gonna Stand Up (Live)", artist: "BOLD NE (Neil Young)" }, 
+    7: { title: "Alone.", artist: "Colton Schlines" }, 
+    8: { title: "The Peace (A Cappella)", artist: "Conny Franko" }, 
+    9: { title: "2+1", artist: "Dead Poets" }, 
+    10: { title: "Childhood", artist: "Dereck Higgins" }, 
+    11: { title: "Tea Now", artist: "Dex Arbor (ft. Flora J Griffith)" }, 
+    12: { title: "Ocean Breath", artist: "Dmitrii Shaposhnikov" }, 
+    13: { title: "Løve Surrøunding", artist: "ÈDÈM SOUL" }, 
+    14: { title: "Son of the Soil", artist: "Gerard Pefung" }, 
+    15: { title: "May Queen", artist: "Hair Person" }, 
+    16: { title: "FOLK SONG #3", artist: "Higgins/Twelve" }, 
+    17: { title: "Duniya", artist: "ID (Ilahi & DeLorenzo)" }, 
+    18: { title: "In Comes the Light", artist: "Jenelle Betterman" }, 
+    19: { title: "Alignment", artist: "Jewel Rodgers & Fredrik Serholt" }, 
+    20: { title: "A Single Refugee Mom", artist: "Kam Bany" }, 
+    21: { title: "Racecar", artist: "Kevin Paradise" }, 
     22: { title: "My Father Apologizes", artist: "Kimberly Nguyễn" }, 
     23: { title: "Gbandjo", artist: "Kusher Snazzy" }, 
     24: { title: "Pidgin", artist: "Lindsey Anne Baker" }, 
@@ -178,7 +182,6 @@ const directory = {
     46: { title: "All Nighter", artist: "UN-T.I.L." }, 
     47: { title: "To Word Counts", artist: "Victoria Bogatz" }, 
     48: { title: "The Ocelot", artist: "Winston F. Schneider" },
-    49: { title: "SYSTEM GREETER", artist: "SYSTEM" },
     100: { title: "WELCOME GREETING", artist: "SYSTEM" }, 
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
     102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
@@ -192,7 +195,7 @@ function writeLine(id, text, forceScroll = false) {
 }
 
 function updateLCD(l2, l3, l4) { 
-    let f = (currentTrackNum > 1 && currentTrackNum < 100 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; 
+    let f = (currentTrackNum > 0 && currentTrackNum < 100 && !isDirectoryOpen) ? (l2.length > 20 || l3.length > 20) : false; 
     writeLine('line2', l2, f); writeLine('line3', l3, f); writeLine('line4', l4); 
 }
 
@@ -201,8 +204,8 @@ function refreshDisplay() {
     if (!isLanguageSelected) updateLCD("1: ENGLISH", "2: ESPANOL", "SELECT LANGUAGE");
     else if (isDirectoryOpen) showDirectoryEntry();
     else if (isReviewing) updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
-    else if ((currentTrackNum === 1 || currentTrackNum > 100) && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
-    else if (currentTrackNum > 1 && currentTrackNum < 100 && inputString === "") { 
+    else if ((currentTrackNum === 0 || currentTrackNum > 100) && inputString === "") updateLCD(lang.d, lang.r, lang.dual);
+    else if (currentTrackNum > 0 && currentTrackNum < 100 && inputString === "") { 
         const t = directory[currentTrackNum];
         updateLCD(`${currentTrackNum.toString().padStart(2,'0')} ${t.artist}`, t.title, lang.nav); 
     }
@@ -216,7 +219,7 @@ function toggleHandset() {
     if (isOffHook) {
         if(f) f.classList.add('up');
         if(unit) unit.classList.add('handset-up'); 
-        isLanguageSelected = false; isReviewing = false; 
+        isLanguageSelected = false; isReviewing = false; stateChangeLock = false;
         setTimeout(() => { playTrack(100); }, 100);
     } else {
         if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; document.getElementById('key-hash').classList.remove('recording-active'); }
@@ -229,31 +232,46 @@ function toggleHandset() {
 }
 
 function press(key) {
-    if (!isOffHook) return; triggerRecoil('micro'); playDialTone(key);
+    if (!isOffHook || stateChangeLock) return; // Dropping button execution if locked during debounce
+    triggerRecoil('micro'); playDialTone(key);
+    
     if (!isLanguageSelected) {
         if (key === '1') { currentLang = 'en'; isLanguageSelected = true; playTrack(101); }
         else if (key === '2') { currentLang = 'es'; isLanguageSelected = true; playTrack(102); }
         return;
     }
+    
+    // Review Menu Key Management
     if (isReviewing) {
-        initAudioEngine(); if (key === '1') { audio.pause(); audio.src = URL.createObjectURL(recordedBlob); audio.load(); audio.play().catch(() => {}); updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING..."); }
+        initAudioEngine(); 
+        if (key === '1') { audio.pause(); audio.src = URL.createObjectURL(recordedBlob); audio.load(); audio.play().catch(() => {}); updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING..."); }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
-        else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(1); }
+        else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(0); }
         return;
     }
-    if (isRecording) { if (key === '#') { isRecording = false; mediaRecorder.stop(); } return; }
+    
+    // Recording Menu Key Management
+    if (isRecording) { 
+        if (key === '#') { 
+            stateChangeLock = true; // Engage state shift freeze barrier
+            isRecording = false; 
+            mediaRecorder.stop(); 
+        } 
+        return; 
+    }
+    
     if (cmdTimer) { clearTimeout(cmdTimer); cmdTimer = null; }
     
     if (isDirectoryOpen) {
-        if (key === '2') { directoryIndex = (directoryIndex > 2) ? directoryIndex - 1 : 49; showDirectoryEntry(); }
-        else if (key === '8') { directoryIndex = (directoryIndex < 49) ? directoryIndex + 1 : 2; showDirectoryEntry(); }
+        if (key === '2') { directoryIndex = (directoryIndex > 1) ? directoryIndex - 1 : 48; showDirectoryEntry(); }
+        else if (key === '8') { directoryIndex = (directoryIndex < 48) ? directoryIndex + 1 : 1; showDirectoryEntry(); }
         else if (key === '#') { playTrack(directoryIndex); isDirectoryOpen = false; }
-        else if (key === '*') { isDirectoryOpen = false; playTrack(1); }
+        else if (key === '*') { isDirectoryOpen = false; playTrack(0); }
         return;
     }
     if (key === '#') { 
         if (inputString === "402") { audio.pause(); startRecording(); } 
-        else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 2; showDirectoryEntry(); } 
+        else if (inputString === "00") { isDirectoryOpen = true; directoryIndex = 1; showDirectoryEntry(); } 
         else { 
             const d = parseInt(inputString); 
             if (directory[d]) playTrack(d); 
@@ -261,11 +279,11 @@ function press(key) {
         } 
         inputString = ""; 
     } 
-    else if (key === '*') { inputString = ""; playTrack(1); } 
+    else if (key === '*') { inputString = ""; playTrack(0); } 
     else { 
         inputString += key; updateLCD("DIALING...", inputString, "PRESS # TO CALL"); 
         if (inputString.length === 1 && (key === '4' || key === '5' || key === '6')) { 
-            cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 2 && currentTrackNum < 100 ? currentTrackNum - 1 : 49); else if (key === '6') playTrack(currentTrackNum < 49 ? currentTrackNum + 1 : 2); inputString = ""; } }, 1000); 
+            cmdTimer = setTimeout(() => { if (inputString === key) { if (key === '5') playRandom(); else if (key === '4') playTrack(currentTrackNum > 1 && currentTrackNum < 100 ? currentTrackNum - 1 : 48); else if (key === '6') playTrack(currentTrackNum < 48 ? currentTrackNum + 1 : 1); inputString = ""; } }, 1000); 
         } 
     }
 }
@@ -274,17 +292,21 @@ function showDirectoryEntry() { const e = directory[directoryIndex]; updateLCD(`
 
 function playRandom() { 
     let r; 
-    do { r = Math.floor(Math.random() * 48) + 2; } while (directory[r] === undefined); 
+    do { r = Math.floor(Math.random() * 48) + 1; } while (directory[r] === undefined); 
     playTrack(r); 
 }
 
 function playTrack(num) {
-    currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 5 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
-        const filename = num.toString().padStart(4, '0') + ".mp3";
+    currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 4 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
+        let actualFileNum = num;
+        if (num >= 1 && num <= 48) {
+            actualFileNum = num + 1; // Shifts pointer to access correct raw file (0002.mp3 - 0049.mp3)
+        }
         
+        const filename = actualFileNum.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + filename; 
         audio.load(); 
-        audio.play().then(() => { if (num !== 1 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Local path stream caught:", e)); 
+        audio.play().then(() => { if (num !== 0 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Local path stream caught:", e)); 
     }, 400); 
 }
 
