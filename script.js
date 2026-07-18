@@ -8,7 +8,7 @@ clickAudio.crossOrigin = "anonymous";
 
 let mediaRecorder, audioChunks = [], isRecording = false, isReviewing = false, recordedBlob = null;
 let audioCtx, compressor, gainNode, source, cmdTimer = null;
-let stateChangeLock = false; // DEBOUNCE FLAG: Prevents button actions from overlapping during recording states
+let stateChangeLock = false; 
 
 const dtmfFreqs = { "1": 697, "2": 770, "3": 852, "4": 697, "5": 770, "6": 852, "7": 697, "8": 770, "9": 852, "*": 941, "0": 941, "#": 941 };
 
@@ -92,10 +92,12 @@ function startRecording() {
                 mediaRecorder.onstop = () => {
                     if(hashKey) hashKey.classList.remove('recording-active');
                     recordedBlob = new Blob(audioChunks, { type: supportedType }); 
-                    isReviewing = true;
-                    updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
                     
-                    // Unlock buttons safely after a 500ms debounce buffer window
+                    // MEMORY FLUSH: Clears old instruction tracking parameters instantly
+                    currentTrackNum = 0; 
+                    isReviewing = true;
+                    
+                    updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
                     setTimeout(() => { stateChangeLock = false; }, 500);
                 };
                 mediaRecorder.start();
@@ -116,7 +118,7 @@ function uploadToDrive(blob) {
         })
         .then(() => { 
             updateLCD("MESSAGE SENT", "THANK YOU", "COMPLETE"); 
-            setTimeout(() => { if(isOffHook) playTrack(0); }, 2000);
+            setTimeout(() => { if(isOffHook) playTrack(0); }, 2000); 
         });
     };
 }
@@ -232,7 +234,7 @@ function toggleHandset() {
 }
 
 function press(key) {
-    if (!isOffHook || stateChangeLock) return; // Dropping button execution if locked during debounce
+    if (!isOffHook || stateChangeLock) return; 
     triggerRecoil('micro'); playDialTone(key);
     
     if (!isLanguageSelected) {
@@ -241,7 +243,6 @@ function press(key) {
         return;
     }
     
-    // Review Menu Key Management
     if (isReviewing) {
         initAudioEngine(); 
         if (key === '1') { audio.pause(); audio.src = URL.createObjectURL(recordedBlob); audio.load(); audio.play().catch(() => {}); updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING..."); }
@@ -250,11 +251,11 @@ function press(key) {
         return;
     }
     
-    // Recording Menu Key Management
     if (isRecording) { 
         if (key === '#') { 
-            stateChangeLock = true; // Engage state shift freeze barrier
+            stateChangeLock = true; 
             isRecording = false; 
+            audio.pause(); // Kills any instruction leftovers instantly on hang-up stop
             mediaRecorder.stop(); 
         } 
         return; 
@@ -300,7 +301,7 @@ function playTrack(num) {
     currentTrackNum = num; audio.pause(); if (audioCtx) gainNode.gain.setValueAtTime(num === 4 ? 7.0 : 1.0, audioCtx.currentTime); clickAudio.src = baseUrl + "0099.mp3"; clickAudio.play().catch(() => {}); refreshDisplay(); setTimeout(() => { 
         let actualFileNum = num;
         if (num >= 1 && num <= 48) {
-            actualFileNum = num + 1; // Shifts pointer to access correct raw file (0002.mp3 - 0049.mp3)
+            actualFileNum = num + 1; 
         }
         
         const filename = actualFileNum.toString().padStart(4, '0') + ".mp3";
