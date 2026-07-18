@@ -93,12 +93,18 @@ function startRecording() {
                     if(hashKey) hashKey.classList.remove('recording-active');
                     recordedBlob = new Blob(audioChunks, { type: supportedType }); 
                     
-                    // MEMORY FLUSH: Clears old instruction tracking parameters instantly
-                    currentTrackNum = 0; 
                     isReviewing = true;
-                    
                     updateLCD("1:LISTEN #:SEND", "*:DISCARD", "REVIEW MESSAGE");
-                    setTimeout(() => { stateChangeLock = false; }, 500);
+                    
+                    // AUDIO ROUTE ENGINE OVERRIDE: Autoplays your fresh instructions based on selected language
+                    setTimeout(() => { 
+                        stateChangeLock = false; 
+                        if (currentLang === 'es') {
+                            playTrack(104); // Plays Spanish Review Prompts
+                        } else {
+                            playTrack(103); // Plays English Review Prompts
+                        }
+                    }, 500);
                 };
                 mediaRecorder.start();
                 updateLCD("How do you envision Omaha in the next 5 years?", "RED KEY TO STOP", "● RECORDING");
@@ -186,7 +192,9 @@ const directory = {
     48: { title: "The Ocelot", artist: "Winston F. Schneider" },
     100: { title: "WELCOME GREETING", artist: "SYSTEM" }, 
     101: { title: "ENGLISH INSTRUCTIONS", artist: "SYSTEM" },
-    102: { title: "INSTRUCCIONES", artist: "SYSTEM" }
+    102: { title: "INSTRUCCIONES", artist: "SYSTEM" },
+    103: { title: "ENGLISH REVIEW", artist: "SYSTEM" }, // Added explicit map for 0103.mp3
+    104: { title: "REPASO MENSAJE", artist: "SYSTEM" }  // Added explicit map for 0104.mp3
 };
 // --- 6. DISPLAY ENGINE ---
 function writeLine(id, text, forceScroll = false) {
@@ -245,7 +253,13 @@ function press(key) {
     
     if (isReviewing) {
         initAudioEngine(); 
-        if (key === '1') { audio.pause(); audio.src = URL.createObjectURL(recordedBlob); audio.load(); audio.play().catch(() => {}); updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING..."); }
+        if (key === '1') { 
+            audio.pause(); 
+            audio.src = URL.createObjectURL(recordedBlob); 
+            audio.load(); 
+            audio.play().catch(() => {}); 
+            updateLCD("1:LISTEN #:SEND", "*:DISCARD", "● PLAYING..."); 
+        }
         else if (key === '#') { isReviewing = false; uploadToDrive(recordedBlob); }
         else if (key === '*') { isReviewing = false; recordedBlob = null; playTrack(0); }
         return;
@@ -255,7 +269,7 @@ function press(key) {
         if (key === '#') { 
             stateChangeLock = true; 
             isRecording = false; 
-            audio.pause(); // Kills any instruction leftovers instantly on hang-up stop
+            audio.pause(); 
             mediaRecorder.stop(); 
         } 
         return; 
@@ -307,7 +321,10 @@ function playTrack(num) {
         const filename = actualFileNum.toString().padStart(4, '0') + ".mp3";
         audio.src = baseUrl + filename; 
         audio.load(); 
-        audio.play().then(() => { if (num !== 0 && num !== 100 && num !== 101 && num !== 102) refreshDisplay(); }).catch(e => console.log("Local path stream caught:", e)); 
+        audio.play().then(() => { 
+            // Ensures system voice instruction clips (100, 101, 102, 103, 104) don't overwrite the main dialing display UI
+            if (num !== 0 && num < 100) refreshDisplay(); 
+        }).catch(e => console.log("Local path stream caught:", e)); 
     }, 400); 
 }
 
